@@ -5,7 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Task
-import RandomGif as RG
+import RandomGif as Gif
 
 
 app =
@@ -28,24 +28,24 @@ port tasks =
 -- MODEL
 
 type alias Model =
-    { left : RG.Model
-    , right : RG.Model
+    { left : Gif.Model
+    , right : Gif.Model
     }
 
 
 init : String -> String -> Transaction Message Model
 init leftTopic rightTopic =
   with2
-    (tag Left <| RG.init leftTopic)
-    (tag Right <| RG.init rightTopic)
+    (tag Left <| Gif.init leftTopic)
+    (tag Right <| Gif.init rightTopic)
     (\left right -> done { left = left, right = right })
 
 
 -- UPDATE
 
 type Message
-    = Left RG.Message
-    | Right RG.Message
+    = Left Gif.Message
+    | Right Gif.Message
 
 
 update : Message -> Model -> Transaction Message Model
@@ -53,12 +53,12 @@ update message model =
   case message of
     Left msg ->
       with
-        (tag Left <| RG.update msg model.left)
+        (tag Left <| Gif.update msg model.left)
         (\left -> done { model | left <- left })
 
     Right msg ->
       with
-        (tag Right <| RG.update msg model.right)
+        (tag Right <| Gif.update msg model.right)
         (\right -> done { model | right <- right })
 
 
@@ -70,6 +70,6 @@ update message model =
 view : Signal.Address Message -> Model -> Html
 view address model =
   div [ style [ "display" => "flex" ] ]
-    [ RG.view (Signal.forwardTo address Left) model.left
-    , RG.view (Signal.forwardTo address Right) model.right
+    [ Gif.view (Signal.forwardTo address Left) model.left
+    , Gif.view (Signal.forwardTo address Right) model.right
     ]
