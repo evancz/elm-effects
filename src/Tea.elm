@@ -1,7 +1,7 @@
 module Tea
     ( Transaction, done, request
     , Effect, task, animationFrame
-    , tag, with, with2, with3, andThen
+    , tag, with, with2, with3
     , App, Output, start
     ) where
 {-|
@@ -16,14 +16,14 @@ module Tea
 @docs Effect, task, animationFrame
 
 # Nesting Transactions
-@docs tag, with, with2, with3, andThen
+@docs tag, with, with2, with3
 
 -}
 
 
 import Debug
 import Html exposing (Html)
-import Never exposing (Never)
+import Native.Tea
 import Task
 import Tea.SpecialEffects as SFX
 
@@ -76,11 +76,6 @@ tag func transaction =
     SFX.tag (map func) transaction
 
 
-andThen : Transaction msg a -> (a -> Transaction msg b) -> Transaction msg b
-andThen =
-  SFX.andThen
-
-
 with : Transaction msg a -> (a -> Transaction msg model) -> Transaction msg model
 with =
   SFX.with
@@ -98,9 +93,9 @@ with3 =
 
 -- START
 
-type alias App options msg model =
+type alias App msg model =
     { model : model
-    , init : options -> List (Effect msg)
+    , init : List (Effect msg)
     , view : Signal.Address msg -> model -> Html
     , update : msg -> model -> Transaction msg model
     }
@@ -113,11 +108,11 @@ type alias Output model =
     }
 
 
-start : options -> App options msg model -> Output model
-start options app =
+start : App msg model -> Output model
+start app =
     let
         { model, html, effects, address } =
-            SFX.start options app
+            SFX.start app
     in
         Output html model (Signal.map (interpreter address) effects)
 
@@ -170,8 +165,8 @@ interpreterHelp address effect (combinedTask, frameMessages) =
 
 
 requestAnimationFrame : (Float -> Task.Task Never ()) -> Task.Task Never ()
-requestAnimationFrame callback =
-    Debug.crash "TODO"
+requestAnimationFrame =
+    Native.Tea.requestAnimationFrame
 
 
 ignore : Task.Task x a -> Task.Task x ()

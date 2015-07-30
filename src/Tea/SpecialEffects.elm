@@ -1,22 +1,19 @@
 module Tea.SpecialEffects
     ( Transaction, done, request, requestList
     , tag, with, with2, with3, andThen
-    , Component, Output, start
+    , App, Output, start
     )
     where
 {-|
 
-# Components
-@docs Component
+# Running an App
+@docs App, start, Output
 
 # Transactions
 @docs Transaction, done, request, requestList
 
 # Nesting Transactions
 @docs tag, with, with2, with3, andThen
-
-# Running a Component
-@docs start, Output
 
 -}
 
@@ -133,9 +130,9 @@ with3 (Transaction fx1 a) (Transaction fx2 b) (Transaction fx3 c) create =
 
 -- START
 
-type alias Component fx options msg model =
+type alias App fx msg model =
     { model : model
-    , init : options -> List fx
+    , init : List fx
     , view : Signal.Address msg -> model -> Html
     , update : msg -> model -> Transaction fx model
     }
@@ -149,11 +146,8 @@ type alias Output fx msg model =
     }
 
 
-start
-    : options
-    -> Component fx options msg model
-    -> Output fx msg model
-start options app =
+start : App fx msg model -> Output fx msg model
+start app =
     let
         -- messages : Signal.Mailbox (Maybe msg)
         messages =
@@ -171,7 +165,7 @@ start options app =
         transactions =
             Signal.foldp
                 update
-                (Transaction (Leaf (app.init options)) app.model)
+                (Transaction (Leaf app.init) app.model)
                 messages.signal
 
 
