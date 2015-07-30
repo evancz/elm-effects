@@ -1,6 +1,5 @@
 module RandomGifViewer where
 
-import Debug
 import Html exposing (..)
 import Html.Attributes exposing (style, src)
 import Html.Events exposing (onClick)
@@ -44,7 +43,7 @@ type Message
 
 update : Message -> Model -> Transaction Message Model
 update msg model =
-  case Debug.log "msg" msg of
+  case msg of
     Next ->
       request
         (getRandomImage model.topic)
@@ -104,7 +103,7 @@ getRandomImage : String -> C.Effect Message
 getRandomImage topic =
   Http.get decodeImageUrl (randomUrl topic)
     |> Task.toMaybe
-    |> Task.map (NewImage << Debug.log "result")
+    |> Task.map NewImage
     |> C.task
 
 
