@@ -1,4 +1,4 @@
-module Tea
+module Components
     ( Transaction, done, request
     , Effect, task, animationFrame, Never
     , tag, with, with2, with3
@@ -23,9 +23,9 @@ module Tea
 
 import Debug
 import Html exposing (Html)
-import Native.Tea
+import Native.Components
 import Task
-import Tea.SpecialEffects as SFX
+import Components.SpecialEffects as SFX
 
 
 -- TRANSACTIONS
@@ -168,7 +168,7 @@ interpreterHelp address effect (combinedTask, frameMessages) =
 
 requestAnimationFrame : (Float -> Task.Task Never ()) -> Task.Task Never ()
 requestAnimationFrame =
-    Native.Tea.requestAnimationFrame
+    Native.Components.requestAnimationFrame
 
 
 ignore : Task.Task x a -> Task.Task x ()

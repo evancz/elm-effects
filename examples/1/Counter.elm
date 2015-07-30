@@ -7,13 +7,13 @@ import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Json
 import Task
-import Tea exposing (Transaction, done, request, Never)
+import Components as C exposing (Transaction, done, request, Never)
 
 
 main = output.html
 
 output =
-  Tea.start { init = init "funny cats", update = update, view = view }
+  C.start { init = init "funny cats", update = update, view = view }
 
 port tasks : Signal (Task.Task Never ())
 port tasks =
@@ -100,12 +100,12 @@ randomUrl topic =
     ]
 
 
-getRandomImage : String -> Tea.Effect Message
+getRandomImage : String -> C.Effect Message
 getRandomImage topic =
   Http.get decodeImageUrl (randomUrl topic)
     |> Task.toMaybe
     |> Task.map (NewImage << Debug.log "result")
-    |> Tea.task
+    |> C.task
 
 
 decodeImageUrl : Json.Decoder String

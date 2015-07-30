@@ -1,4 +1,4 @@
-module Tea.SpecialEffects
+module Components.SpecialEffects
     ( Transaction, done, request, requestList
     , tag, with, with2, with3, andThen
     , App, Output, start
