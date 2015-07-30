@@ -1,6 +1,6 @@
 module Tea
     ( Transaction, done, request
-    , Effect, task, animationFrame
+    , Effect, task, animationFrame, Never
     , tag, with, with2, with3
     , App, Output, start
     ) where
@@ -94,8 +94,7 @@ with3 =
 -- START
 
 type alias App msg model =
-    { model : model
-    , init : List (Effect msg)
+    { init : Transaction msg model
     , view : Signal.Address msg -> model -> Html
     , update : msg -> model -> Transaction msg model
     }
@@ -154,9 +153,12 @@ interpreterHelp
 interpreterHelp address effect (combinedTask, frameMessages) =
     case effect of
         Task arbitraryTask ->
-            ( sequence_ [ combinedTask, ignore (Task.spawn arbitraryTask) ]
-            , frameMessages
-            )
+            let reporter =
+                    arbitraryTask `Task.andThen` Signal.send address
+            in
+                ( sequence_ [ combinedTask, ignore (Task.spawn reporter) ]
+                , frameMessages
+                )
 
         AnimationFrame toMsg ->
             ( combinedTask
