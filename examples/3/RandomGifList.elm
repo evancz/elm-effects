@@ -95,7 +95,7 @@ view address model =
         , inputStyle
         ]
         []
-    , div [ style [ "display" => "flex" ] ]
+    , div [ style [ "display" => "flex", "flex-wrap" => "wrap" ] ]
         (List.map (elementView address) model.gifList)
     ]
 
