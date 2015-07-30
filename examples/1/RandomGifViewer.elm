@@ -1,4 +1,4 @@
-module Counter where
+module RandomGifViewer where
 
 import Debug
 import Html exposing (..)
