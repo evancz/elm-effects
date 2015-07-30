@@ -1,4 +1,4 @@
-module RandomGifViewer where
+module RandomGif where
 
 import Html exposing (..)
 import Html.Attributes exposing (style, src)
@@ -9,14 +9,14 @@ import Task
 import Components as C exposing (Transaction, done, request, Never)
 
 
-main = output.html
-
-output =
+app =
   C.start { init = init "funny cats", update = update, view = view }
+
+main = app.html
 
 port tasks : Signal (Task.Task Never ())
 port tasks =
-  output.tasks
+  app.tasks
 
 
 -- MODEL
