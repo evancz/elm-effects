@@ -1,7 +1,7 @@
 module Components
     ( Transaction, done, request
     , Effect, task, animationFrame, Never
-    , tag, with, with2, with3
+    , tag, with, with2, with3, list
     , App, Output, start
     ) where
 {-|
@@ -89,6 +89,19 @@ with2 =
 with3 : Transaction msg a -> Transaction msg b -> Transaction msg c -> (a -> b -> c -> Transaction msg model) -> Transaction msg model
 with3 =
   SFX.with3
+
+
+list : List (Transaction msg a) -> Transaction msg (List a)
+list transactionList =
+  case transactionList of
+    [] ->
+        done []
+
+    transaction :: rest ->
+        SFX.with2
+          transaction
+          (list rest)
+          (\head tail -> done (head :: tail))
 
 
 -- START
