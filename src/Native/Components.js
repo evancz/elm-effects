@@ -16,7 +16,7 @@ Elm.Native.Components.make = function(localRuntime) {
 	{
 		return Task.asyncFunction(function(callback) {
 			requestAnimationFrame(function(time) {
-				Task.spawn(timeToTask(time));
+				Task.perform(timeToTask(time));
 			});
 			callback(Task.succeed(Utils.Tuple0));
 		});

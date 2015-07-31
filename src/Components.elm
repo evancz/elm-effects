@@ -155,7 +155,7 @@ interpreter address effectList =
         animationRequests =
             requestAnimationFrame animationReport
     in
-        sequence_ [ combinedTask, ignore (Task.spawn animationRequests) ]
+        sequence_ [ combinedTask, animationRequests ]
 
 
 interpreterHelp
