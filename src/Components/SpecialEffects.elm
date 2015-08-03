@@ -134,6 +134,7 @@ type alias App fx msg model =
     { init : Transaction fx model
     , view : Signal.Address msg -> model -> Html
     , update : msg -> model -> Transaction fx model
+    , externalMessages : List (Signal msg)
     }
 
 
@@ -160,9 +161,15 @@ start app =
         update (Just msg) (Transaction _ model) =
             app.update msg model
 
+        -- allMessages : Signal msg
+        allMessages =
+            Signal.merge
+                (messages.signal)
+                (Signal.map Just <| Signal.mergeMany app.externalMessages)
+
         -- transactions : Signal (Transaction fx model)
         transactions =
-            Signal.foldp update app.init messages.signal
+            Signal.foldp update app.init allMessages
 
         -- split : Transaction fx model -> (model, List fx)
         split (Transaction fx model) =
