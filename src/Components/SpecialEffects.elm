@@ -161,11 +161,18 @@ start app =
         update (Just msg) (Transaction _ model) =
             app.update msg model
 
+        -- extMessages : Signal msg
+        extMessages =
+            case app.externalMessages of
+                [] ->
+                    Signal.constant Nothing
+
+                _ ->
+                    Signal.map Just <| Signal.mergeMany app.externalMessages
+
         -- allMessages : Signal msg
         allMessages =
-            Signal.merge
-                (messages.signal)
-                (Signal.map Just <| Signal.mergeMany app.externalMessages)
+            Signal.merge messages.signal extMessages
 
         -- transactions : Signal (Transaction fx model)
         transactions =
