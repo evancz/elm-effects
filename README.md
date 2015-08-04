@@ -9,9 +9,11 @@ This package is the next step in [The Elm Architecture][arch], making it easy to
 
 ## The General Pattern
 
-The general pattern is a slight extension to [The Elm Architecture][arch]. If you have not read about that, do it now. Go, do it!
+The general pattern is a slight extension to [The Elm Architecture][arch]. If you have not read about that, do it now. Come on, here is [the link][arch] again. Go and read it!
 
-Almost everything is the same here. We build up a component as a model, a way to update that model, and a way to view that model. As you look through the following code, just pretend that `Transaction Message Model` means “a new model”
+...
+
+Alright, now that you know about that, almost everything is the same here. We build up a component as a model, a way to update that model, and a way to view that model. As you look through the following skeleton code, just pretend that `Transaction Message Model` means “a new model”.
 
 
 ```elm
