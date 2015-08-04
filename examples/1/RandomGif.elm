@@ -83,12 +83,11 @@ imgStyle url =
 
 -- EFFECTS
 
-getRandomImage : String -> C.Effect Message
+getRandomImage : String -> Task.Task Never Message
 getRandomImage topic =
   Http.get decodeImageUrl (randomUrl topic)
     |> Task.toMaybe
     |> Task.map NewImage
-    |> C.task
 
 
 randomUrl : String -> String

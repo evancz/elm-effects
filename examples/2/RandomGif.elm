@@ -19,9 +19,10 @@ type alias Model =
 
 init : String -> Transaction Message Model
 init topic =
-  request
-    (getRandomImage topic)
-    { topic = topic, image = "http://giphy.com/gifs/bored-alice-in-wonderland-meh-ZXKZWB13D6gFO" }
+  request (getRandomImage topic)
+    { topic = topic
+    , image = "assets/waiting.gif"
+    }
 
 
 -- UPDATE
@@ -82,20 +83,19 @@ imgStyle url =
 
 -- EFFECTS
 
+getRandomImage : String -> Task.Task Never Message
+getRandomImage topic =
+  Http.get decodeImageUrl (randomUrl topic)
+    |> Task.toMaybe
+    |> Task.map NewImage
+
+
 randomUrl : String -> String
 randomUrl topic =
   Http.url "http://api.giphy.com/v1/gifs/random"
     [ "api_key" => "dc6zaTOxFJmzC"
     , "tag" => topic
     ]
-
-
-getRandomImage : String -> C.Effect Message
-getRandomImage topic =
-  Http.get decodeImageUrl (randomUrl topic)
-    |> Task.toMaybe
-    |> Task.map NewImage
-    |> C.task
 
 
 decodeImageUrl : Json.Decoder String
