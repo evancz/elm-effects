@@ -9,16 +9,6 @@ import Task
 import Components as C exposing (Transaction, done, request, Never)
 
 
-app =
-  C.start { init = init "funny cats", update = update, view = view }
-
-main = app.html
-
-port tasks : Signal (Task.Task Never ())
-port tasks =
-  app.tasks
-
-
 -- MODEL
 
 type alias Model =
@@ -29,9 +19,10 @@ type alias Model =
 
 init : String -> Transaction Message Model
 init topic =
-  request
-    (getRandomImage topic)
-    { topic = topic, image = "http://giphy.com/gifs/bored-alice-in-wonderland-meh-ZXKZWB13D6gFO" }
+  request (getRandomImage topic)
+    { topic = topic
+    , image = "assets/waiting.gif"
+    }
 
 
 -- UPDATE
@@ -59,6 +50,7 @@ update msg model =
 -- VIEW
 
 (=>) = (,)
+
 
 view : Signal.Address Message -> Model -> Html
 view address model =
@@ -91,14 +83,6 @@ imgStyle url =
 
 -- EFFECTS
 
-randomUrl : String -> String
-randomUrl topic =
-  Http.url "http://api.giphy.com/v1/gifs/random"
-    [ "api_key" => "dc6zaTOxFJmzC"
-    , "tag" => topic
-    ]
-
-
 getRandomImage : String -> C.Effect Message
 getRandomImage topic =
   Http.get decodeImageUrl (randomUrl topic)
@@ -107,6 +91,29 @@ getRandomImage topic =
     |> C.task
 
 
+randomUrl : String -> String
+randomUrl topic =
+  Http.url "http://api.giphy.com/v1/gifs/random"
+    [ "api_key" => "dc6zaTOxFJmzC"
+    , "tag" => topic
+    ]
+
+
 decodeImageUrl : Json.Decoder String
 decodeImageUrl =
   Json.at ["data", "image_url"] Json.string
+
+
+-- SETUP
+
+app =
+  C.start { init = init "funny cats", update = update, view = view }
+
+
+main = app.html
+
+
+port tasks : Signal (Task.Task Never ())
+port tasks =
+  app.tasks
+
