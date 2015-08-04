@@ -110,6 +110,7 @@ type alias App msg model =
     { init : Transaction msg model
     , view : Signal.Address msg -> model -> Html
     , update : msg -> model -> Transaction msg model
+    , externalMessages : List (Signal msg)
     }
 
 
