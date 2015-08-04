@@ -58,19 +58,24 @@ Let’s look at a simple example to get a feel for how these things work.
 
 ## Example 1 - Random GIFs
 
-This example is a simple component that fetches random gifs from giphy.com with the topic "funny cats". It lives in `examples/1/`, so to follow along you can run the following commands from the root of this repo.
+<div style="text-align:center"><a href="http://evancz.github.io/elm-components/examples/random-gifs"><img src ="examples/1/assets/preview.png?raw=true"/></a></div>
+
+This example is a simple component that fetches random gifs from giphy.com with the topic “funny cats”. To follow along you can run the following commands:
 
 ```bash
-cd examples/1/
+git clone https://github.com/evancz/elm-components.git
+cd elm-components/examples/1/
 elm-reactor
 ```
 
 And then open up [http://localhost:8000](http://localhost:8000) in your browser and click on `RandomGif.elm` to try it out.
 
+The next few subsections will be discussing parts of [the code](examples/1/RandomGif.elm), so keep that open so you can look through and contextualize this discussion. The code follows the normal model / update / view pattern that you see in every Elm program, but we will be emphasizing model and update because that’s where the new stuff happens.
+
 
 ### Modeling the Problem
 
-Let's start digging through the code to see how it works. First we have the model.
+First we have the model of our random GIF finder.
 
 ```elm
 type alias Model =
@@ -79,7 +84,7 @@ type alias Model =
     }
 ```
 
-To show our random GIF finder, we need to know what the topic of the finder is and what image we are showing right this second. In our case, the topic we want is “funny cats” and the initial image should be loaded from giphy.
+We need to know what the `topic` of the finder is and what `image` we are showing right this second. In our case, the topic we want is “funny cats” and the initial image should be loaded from giphy.
 
 Let's start with a simple `init` function and get fancier.
 
@@ -117,16 +122,16 @@ init topic =
     }
 
 
--- request : Effect msg -> model -> Transaction msg model
+-- request : Task Never msg -> model -> Transaction msg model
 
--- getRandomImage : String -> Effect Message
+-- getRandomImage : String -> Task Never Message
 ```
 
-Unlike `done`, `request` allows us to give a data result *and* request a certain effect. In this case, `getRandomImage` describes how to go to giphy.com and request a random image in the given `topic`. (We will get into the specifics of `getRandomImage` in due time!)
+Unlike `done`, `request` allows us to give a data result *and* request a certain task. In this case, `getRandomImage` describes how to go to giphy.com and request a random image in the given `topic`. (We will get into the specifics of `getRandomImage` in due time!)
 
 The point is that “initializing” means both providing the current model and asking for some information from the world. The `Transaction` captures both halves of this.
 
-But now we are left wondering what happens when the effect described by `getRandomImage model` is complete. How do we bring that back into our random GIF component?
+But now we are left wondering what happens when the task described by `getRandomImage model` gets run and has a result to give us. How do we bring that back into our random GIF component? The `elm-component` package is all about routing these events automatically, so it will just show up in our `update` function when it is done!
 
 
 ### Updating the Model
@@ -155,7 +160,7 @@ update msg model =
         }
 
 
--- request : Effect msg -> model -> Transaction msg model
+-- request : Task Never msg -> model -> Transaction msg model
 
 -- done : model -> Transaction msg model
 ```
@@ -175,15 +180,17 @@ So now we are able to request and effect and handle the result all from our comp
 
 ### Setting Up Effects
 
-One of the crucial aspects of this system is the `getRandomImage` function that actually describes how to get a random GIF. It is defined like this:
+One of the crucial aspects of this system is the `getRandomImage` function that actually describes how to get a random GIF. It uses [tasks][] and [the `Http` package][http], but I will try to give an overview of how these things are being used as we go. Let’s look at the definition:
+
+[tasks]: http://elm-lang.org/guide/reactivity#tasks
+[http]: http://package.elm-lang.org/packages/evancz/elm-http/latest
 
 ```elm
-getRandomImage : String -> C.Effect Message
+getRandomImage : String -> Task.Task Never Message
 getRandomImage topic =
   Http.get decodeImageUrl (randomUrl topic)
     |> Task.toMaybe
     |> Task.map NewImage
-    |> C.task
 
 -- The first line there created an HTTP GET request. It tries to
 -- get some JSON at `randomUrl topic` and decodes the result
@@ -191,12 +198,8 @@ getRandomImage topic =
 --
 -- Next we use `Task.toMaybe` to capture any potential failures.
 --
--- Then we apply the `NewImage` tag to turn the result into
+-- Finally we apply the `NewImage` tag to turn the result into
 -- a `Message`.
---
--- Finally we turn that `Task` into an `Effect` that can be managed
--- by this library
-
 
 
 -- Given a topic, construct a URL for the giphy API.
@@ -215,73 +218,79 @@ decodeImageUrl =
   Json.at ["data", "image_url"] Json.string
 ```
 
-
-## Effects and Transactions
-
-The whole point of this library is to make it easy to work with effects like “talk to that server” and “request an animation frame”. To do that there is an explicit `Effect` type to wrap up these different kinds of effects. We will soon see how this is a core part of a `Transaction`.
-
-```elm
-type Effect msg
-  -- Represents some computation that will result in a `msg`.
+Once we have written this up, we are able to reuse `getRandomImage` in our `init` and `update` functions.
 
 
-task : Task.Task Never msg -> Effect msg
-  -- Given a task that can never fail, create an effect. This means
+## More about Transactions
 
+Now that we have seen some of these ideas in action in the random GIF viewer, let’s take a closer look at the details.
 
-animationFrame : (Float -> msg) -> Effect msg
-```
+At the root of this package is the idea of an `Transaction`.
 
-Okay, so what is a `Transaction`? For the sake of making it concrete we can think of it like this:
+For the sake of making it concrete we can think of it like this:
 
 ```elm
 type alias Transaction msg model =
-  { model : model
-  , desiredEffects : List (Effect msg)
-  }
+    { model : model
+    , desiredEffects : List (Effect msg)
+    }
 ```
 
-This is not the true type, but it is true enough for our purposes here. It holds a new model and a list of effects that need to get run. You can create these transactions in a few ways.
+This is not strictly true, but it is true enough for learning. A `Transaction` holds:
+
+  - A `model` representing the next state of the world. So when we finally build up a big transaction for our whole application, this new model will get commited and trigger a rerender.
+
+  - A list of effects that need to get run. These effects are the mix of tasks and ticks that were requested in the various `init` and `update` functions. So when we commit to the transaction, we also fire off all these effects. When those effects are complete, they will be fed back into the system, triggering new updates.
+
+So that is a decent conceptual framework for thinking about `Transactions`, but like I said, it is not the true representation. You can create a `Transaction` in a few ways:
 
 ```elm
 done : model -> Transaction msg model
   -- The simplest way to create a transaction. You just give the new
   -- model. No effects are associated with the new model.
 
-request : Effect msg -> model -> Transaction msg model
-  -- Give a new model AND an effect you would like to run.
+request : Task Never msg -> model -> Transaction msg model
+  -- Give a new model AND request that a certain task is run.
+  --
+  -- Notice that it must be a task that `Never` fails. Another way to
+  -- say this is: if the task does fail, that failure *must* be promoted
+  -- into the `msg` so that it can be handled explicitly. This ensures
+  -- that no tasks are silently failing. This also means you will probably
+  -- be wrapping your tasks in `Task.toMaybe` and `Task.toResult` so that
+  -- you can handle the error cases explicitly.
+
+requestTick : (Time -> msg) -> model -> Transaction msg model
+  -- Give a new model AND request a clock tick for animations
+  --
+  -- This lets you deal with clock ticks at roughly 60 frames per second.
+  -- You can request a bunch of clock ticks to do smooth animations within
+  -- your component.
 ```
 
+These functions are great for a single component, but the real magic is in the helper functions that let us *nest* transactions. The key is the `with` function. Here is a version implemented using our representation of a `Transaction`:
 
-## Setting up a Project
-
-Run the following commands to create a directory for your project and then download the necessary packages:
-
-```bash
-mkdir my-elm-project
-cd my-elm-project
-
-elm-package install evancz/elm-html --yes
-elm-package install evancz/elm-http --yes
-elm-package install evancz/elm-components --yes
+```elm
+with
+    : Transaction msg submodel
+    -> (submodel -> Transaction msg model)
+    -> Transaction msg model
+with transaction callback =
+    let
+        {model, desiredEffects} =
+            callback transaction.model
+    in
+        { model = model
+        , desiredEffects = transaction.desiredEffects ++ desiredEffects
+        }
 ```
 
-Your directory structure should now be like this:
+So we use the `model` from the initial `transaction` to run the given `callback`. This gives us a new model and list of desired effects, but the most important detail is that we return a transaction that appends all the desired effects. This means the list of effects keeps building up as we work within this system. When we finally commit to a transaction, all of the effects can be run all at once.
 
-```
-my-elm-project/
-    elm-stuff/
-    elm-package.json
-```
+> **Note:** This means that this pattern can be used for query optimization. Since we have all the effects in a big list, we can look at exactly what data they want to fetch and be more clever about it. Maybe that means we can combine queries or grab things out of a local cache. All sorts of clever optimizations become really easy to do! We expect to see this come to `elm-components` as folks start finding cases where the effect manager can be more clever.
 
-You should never need to look in `elm-stuff/`, it is entirely managed by the Elm build tool `elm-make` and package manager `elm-package`.
 
-The `elm-package.json` file is interesting though. Open it up and check it out. The most interesting fields for you are probably:
+Alright, now that we have seen the definition of `with` let’s see it in practice to really see what it can do!
 
-  - `source-directories` &mdash; lists the directories in your project that have Elm source code. I like to set this equal to `[ "src" ]` and put all of my code in a `src/` directory.
 
-  - `dependencies` &mdash; This lists all the packages you need. Depending on what you want to do, you should use these bounds differently:
+## Example 2 - A Pair of Random GIFs
 
-    - **Creating a product** &mdash; you want to crush those ranges down to things like `3.0.4 <= v <= 3.0.4` such that you can use exact versions.
-
-    - **Creating a package** &mdash; you want to make these ranges exactly as wide as you have tested. Best practice is to start with them within a single major version and then expand as new versions come out and you test that things still work.
