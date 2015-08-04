@@ -60,7 +60,7 @@ Let’s look at a simple example to get a feel for how these things work.
 
 ## Example 1 - Random GIFs
 
-<div style="text-align:center"><a href="http://evancz.github.io/elm-components/examples/random-gifs"><img src ="examples/1/assets/preview.png?raw=true"/></a></div>
+<p align="center"><a href="http://evancz.github.io/elm-components/examples/random-gifs"><img src ="examples/1/assets/preview.png?raw=true"/></a></p>
 
 This example is a simple component that fetches random gifs from giphy.com with the topic “funny cats”. To follow along you can run the following commands:
 
