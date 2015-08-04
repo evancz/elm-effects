@@ -95,7 +95,7 @@ simpleInit =
 -- done : model -> Transaction msg model
 ```
 
-In this case we always set the "topic" and "image" ourselves, but we really want to let other people decide on the topic. So lets try again making `topic` an argument.
+In this case we always set the "topic" and "image" ourselves. We use `done` to say that this transaction is complete and we just want to give you some data. That's fine, but we really want to take `topic` as an argument. Let's try it.
 
 ```elm
 betterInit : String -> Transaction Message Model
@@ -106,7 +106,7 @@ betterInit topic =
     }
 ```
 
-So now we let the user set the topic, but we need a way to grab a random image. For this we need to introduce the `request` function for creating transactions.
+So now we can create a GIF viewer for any topic, but we need a way to grab a random image to truly initialize the component. For this we need to introduce the `request` function for creating transactions.
 
 ```elm
 init : String -> Transaction Message Model
@@ -122,14 +122,18 @@ init topic =
 -- getRandomImage : String -> Effect Message
 ```
 
-So in this case we give out the initial model *and* request a certain effect. In particular, `getRandomImage` describes how to go to giphy.com and request a random image in the given `topic`. We will get into the specifics of writing that function in due time. For now, the point is that “initializing” means both providing the current model and asking for some information from the world that will give us a `Message` when it is ready.
+Unlike `done`, `request` allows us to give a data result *and* request a certain effect. In this case, `getRandomImage` describes how to go to giphy.com and request a random image in the given `topic`. (We will get into the specifics of `getRandomImage` in due time!)
+
+The point is that “initializing” means both providing the current model and asking for some information from the world. The `Transaction` captures both halves of this.
+
+But now we are left wondering what happens when the effect described by `getRandomImage model` is complete. How do we bring that back into our random GIF component?
 
 
 ### Updating the Model
 
 There are events in the world that we want to react to. For our random GIF viewer, we want to react when the user requests more GIFs and when a server somewhere tells us about a new GIF we can show. We model both of those possible events explicitly as a `Message`.
 
-```
+```elm
 type Message
     = RequestMore
     | NewImage (Maybe String)
@@ -166,10 +170,12 @@ NewImage (Just "http://s3.amazonaws.com/giphygifs/media/ka1aeBvFCSLD2/giphy.gif"
 
 It returns a `Maybe` because the request to the server may fail. That `Message` will get fed into our `update` function. So when we take the `NewImage` route we just update the current `image` if possible. If the request failed, we just stick with the current `model.image`.
 
-So now we are able to request and effect and handle the result all from our component, no need to know about context at all.
+So now we are able to request and effect and handle the result all from our component, no need to know about anything else in the system.
 
 
 ### Setting Up Effects
+
+One of the crucial aspects of this system is the `getRandomImage` function that actually describes how to get a random GIF. It is defined like this:
 
 ```elm
 getRandomImage : String -> C.Effect Message
@@ -179,7 +185,21 @@ getRandomImage topic =
     |> Task.map NewImage
     |> C.task
 
+-- The first line there created an HTTP GET request. It tries to
+-- get some JSON at `randomUrl topic` and decodes the result
+-- with `decodeImage`. Both are defined below!
+--
+-- Next we use `Task.toMaybe` to capture any potential failures.
+--
+-- Then we apply the `NewImage` tag to turn the result into
+-- a `Message`.
+--
+-- Finally we turn that `Task` into an `Effect` that can be managed
+-- by this library
 
+
+
+-- Given a topic, construct a URL for the giphy API.
 randomUrl : String -> String
 randomUrl topic =
   Http.url "http://api.giphy.com/v1/gifs/random"
@@ -188,6 +208,8 @@ randomUrl topic =
     ]
 
 
+-- A JSON decoder that takes a big chunk of JSON spit out by
+-- giphy and extracts the string at `json.data.image_url` 
 decodeImageUrl : Json.Decoder String
 decodeImageUrl =
   Json.at ["data", "image_url"] Json.string
