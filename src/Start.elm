@@ -63,8 +63,8 @@ type alias App model =
     main =
         app.html
 
-    port taskRunner : Signal (Task.Task Never ())
-    port taskRunner =
+    port tasks : Signal (Task.Task Never ())
+    port tasks =
         app.tasks
 
 So once we start the `App` we feed the HTML into `main` and feed the resulting
