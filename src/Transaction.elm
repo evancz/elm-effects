@@ -234,7 +234,7 @@ task will send a bunch of messages to the given `Address`.
 effectToTask : Signal.Address msg -> Effect msg -> Task.Task Never ()
 effectToTask address effect =
     let
-        (task, tickMessages) =
+        (combinedTask, tickMessages) =
             effectToTaskHelp address (Task.succeed (), []) effect
 
         animationReport time =
@@ -253,7 +253,7 @@ effectToTaskHelp
     -> (Task.Task Never (), List (Float -> msg))
     -> Effect msg
     -> (Task.Task Never (), List (Float -> msg))
-effectToTaskHelp address effect ((combinedTask, tickMessages) as intermediateResult) =
+effectToTaskHelp address ((combinedTask, tickMessages) as intermediateResult) effect =
     case effect of
         Task task ->
             let

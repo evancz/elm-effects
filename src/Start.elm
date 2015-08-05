@@ -10,7 +10,7 @@ get it all running for you!
 
 import Html exposing (Html)
 import Task
-import Transaction exposing (Transaction)
+import Transaction exposing (Transaction, Never)
 
 
 {-| The configuration of an app follows the basic model / update / view pattern
@@ -82,12 +82,12 @@ start config =
             Signal.forwardTo messages.address Just
 
         -- update : Maybe msg -> Transaction fx model -> Transaction fx model
-        update (Just msg) (Transaction _ model) =
-            config.update msg model
+        update (Just msg) transaction =
+            config.update msg (Transaction.destruct transaction).model
 
         -- inputs : Signal (Maybe msg)
         inputs =
-            Signal.mergeMany (messages.signal :: List.map Just config.inputs)
+            Signal.mergeMany (messages.signal :: List.map (Signal.map Just) config.inputs)
 
         -- transactions : Signal (Transaction fx model)
         transactions =

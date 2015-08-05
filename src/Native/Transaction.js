@@ -1,11 +1,11 @@
-Elm.Native.Components = {};
-Elm.Native.Components.make = function(localRuntime) {
+Elm.Native.Transaction = {};
+Elm.Native.Transaction.make = function(localRuntime) {
 
 	localRuntime.Native = localRuntime.Native || {};
-	localRuntime.Native.Components = localRuntime.Native.Components || {};
-	if (localRuntime.Native.Components.values)
+	localRuntime.Native.Transaction = localRuntime.Native.Transaction || {};
+	if (localRuntime.Native.Transaction.values)
 	{
-		return localRuntime.Native.Components.values;
+		return localRuntime.Native.Transaction.values;
 	}
 
 	var Task = Elm.Native.Task.make(localRuntime);
@@ -22,7 +22,7 @@ Elm.Native.Components.make = function(localRuntime) {
 		});
 	}
 
-	return localRuntime.Native.Components.values = {
+	return localRuntime.Native.Transaction.values = {
 		requestAnimationFrame: raf
 	};
 
