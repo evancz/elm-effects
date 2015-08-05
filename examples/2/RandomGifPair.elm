@@ -1,18 +1,21 @@
 module RandomGifPair where
 
-import Components as C exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Start
 import Task
+import Transaction exposing (..)
+
 import RandomGif as Gif
 
 
 app =
-  C.start
+  Start.start
     { init = init "funny cats" "funny dogs"
     , update = update
     , view = view
+    , inputs = []
     }
 
 

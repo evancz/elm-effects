@@ -1,19 +1,21 @@
 module RandomGifList where
 
-import Components as C exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Json
+import Start
 import Task
+import Transaction exposing (Transaction, done, tag, with, Never)
 import RandomGif as Gif
 
 
 app =
-  C.start
+  Start.start
     { init = init
     , update = update
     , view = view
+    , inputs = []
     }
 
 
@@ -75,7 +77,7 @@ update message model =
                 done (id, randomGif)
       in
         with
-          (C.list (List.map subUpdate model.gifList))
+          (Transaction.list (List.map subUpdate model.gifList))
           (\gifList -> done { model | gifList <- gifList })
 
 

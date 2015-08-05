@@ -1,12 +1,13 @@
-module RandomGif (Model, Message, init, update, view) where
+module RandomGif (Model, init, Message, update, view) where
 
 import Html exposing (..)
-import Html.Attributes exposing (style, src)
+import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Json
+import Start
 import Task
-import Components as C exposing (Transaction, done, request, Never)
+import Transaction exposing (Transaction, done, requestTask, Never)
 
 
 -- MODEL
@@ -19,7 +20,7 @@ type alias Model =
 
 init : String -> Transaction Message Model
 init topic =
-  request (getRandomImage topic)
+  requestTask (getRandomImage topic)
     { topic = topic
     , image = "assets/waiting.gif"
     }
@@ -28,23 +29,18 @@ init topic =
 -- UPDATE
 
 type Message
-    = Next
+    = RequestMore
     | NewImage (Maybe String)
 
 
 update : Message -> Model -> Transaction Message Model
 update msg model =
   case msg of
-    Next ->
-      request
-        (getRandomImage model.topic)
-        model
+    RequestMore ->
+      requestTask (getRandomImage model.topic) model
 
     NewImage maybeUrl ->
-      done
-        { model |
-            image <- Maybe.withDefault model.image maybeUrl
-        }
+      done { model | image <- Maybe.withDefault model.image maybeUrl }
 
 
 -- VIEW
@@ -57,7 +53,7 @@ view address model =
   div [ style [ "width" => "200px" ] ]
     [ h2 [headerStyle] [text model.topic]
     , div [imgStyle model.image] []
-    , button [ onClick address Next ] [ text "More Please!" ]
+    , button [ onClick address RequestMore ] [ text "More Please!" ]
     ]
 
 
