@@ -7,8 +7,8 @@
         "src"
     ],
     "exposed-modules": [
-        "Tea",
-        "Tea.SpecialEffects"
+        "Start",
+        "Transaction"
     ],
     "native-modules": true,
     "dependencies": {
