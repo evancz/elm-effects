@@ -8,10 +8,10 @@ This package is the next step in [The Elm Architecture][arch], making it easy to
 
 The following tutorial will work through the following examples:
 
-  - [Random GIF fetcher](http://evancz.github.io/elm-components/examples/random-gifs.html) &mdash; [code](examples/1)
-  - [Pair of random GIFs](http://evancz.github.io/elm-components/examples/random-gifs-pair.html) &mdash; [code](examples/2)
-  - [List of random GIFs](http://evancz.github.io/elm-components/examples/random-gifs-list.html) &mdash; [code](examples/3)
-  - [Animating Components](http://evancz.github.io/elm-components/examples/animation-pair.html) &mdash; [code](examples/4)
+  - [Random GIF fetcher](http://evancz.github.io/elm-components/examples/random-gifs.html) &mdash; [code](https://github.com/evancz/elm-components/tree/master/examples/1)
+  - [Pair of random GIFs](http://evancz.github.io/elm-components/examples/random-gifs-pair.html) &mdash; [code](https://github.com/evancz/elm-components/tree/master/examples/2)
+  - [List of random GIFs](http://evancz.github.io/elm-components/examples/random-gifs-list.html) &mdash; [code](https://github.com/evancz/elm-components/tree/master/examples/3)
+  - [Animating Components](http://evancz.github.io/elm-components/examples/animation-pair.html) &mdash; [code](https://github.com/evancz/elm-components/tree/master/examples/4)
 
 The goal of these examples is to build an intuition of the general architecture pattern and how to use this library, so you can go do fancier stuff in your project.
 
@@ -67,7 +67,7 @@ Let’s look at a simple example to get a feel for how these things work.
 
 ## Example 1 - Random GIFs
 
-<p align="center"><a href="http://evancz.github.io/elm-components/examples/random-gifs.html"><img src="examples/1/assets/preview.png?raw=true"/></a></p>
+<p align="center"><a href="http://evancz.github.io/elm-components/examples/random-gifs.html"><img src="https://github.com/evancz/elm-components/tree/master/examples/1/assets/preview.png?raw=true"/></a></p>
 
 This example is a simple component that fetches random gifs from giphy.com with the topic “funny cats”. To follow along, run the following commands:
 
@@ -79,7 +79,7 @@ elm-reactor
 
 And then open up [http://localhost:8000](http://localhost:8000) in your browser and click on `RandomGif.elm` to try it out.
 
-Make sure you look through [the implementation](examples/1/RandomGif.elm) right now. Notice that it is pretty much the same code as with The Elm Architecture: model, update, view. The only weird parts are that `init` and `update` return a `Transaction` and do a little bit of extra stuff.
+Make sure you look through [the implementation](https://github.com/evancz/elm-components/tree/master/examples/1/RandomGif.elm) right now. Notice that it is pretty much the same code as with The Elm Architecture: model, update, view. The only weird parts are that `init` and `update` return a `Transaction` and do a little bit of extra stuff.
 
 Okay, you looked through the code? From now on I am assuming you have!
 
@@ -305,7 +305,7 @@ Alright, now that we have seen the definition of `with` let’s see it in practi
 
 ## Example 2 - A Pair of Random GIFs
 
-<p align="center"><a href="http://evancz.github.io/elm-components/examples/random-gifs-pair.html"><img src="examples/2/assets/preview.png?raw=true"/></a></p>
+<p align="center"><a href="http://evancz.github.io/elm-components/examples/random-gifs-pair.html"><img src="https://github.com/evancz/elm-components/tree/master/examples/2/assets/preview.png?raw=true"/></a></p>
 
 In this example we are going to have **two** random GIF viewers. The cool part is that we will reuse the `RandomGif` module from example 1 without changing the logic at all.
 
@@ -318,7 +318,7 @@ elm-reactor
 
 And then open up [http://localhost:8000](http://localhost:8000) in your browser and click on `RandomGifPair.elm` to try it out.
 
-Take a look through [the implementation](examples/2/RandomGifPair.elm) to get a feel for it. Again we have the typical model, update, and view sections. They all hinge upon the `Model` and `Message` type.
+Take a look through [the implementation](https://github.com/evancz/elm-components/tree/master/examples/2/RandomGifPair.elm) to get a feel for it. Again we have the typical model, update, and view sections. They all hinge upon the `Model` and `Message` type.
 
 ```elm
 type alias Model =
@@ -402,5 +402,5 @@ So the key thing here is that we use `with` to put together a bunch of transacti
 
 ## Example 3 - A List of Random GIFs
 
-<p align="center"><a href="http://evancz.github.io/elm-components/examples/random-gifs-list.html"><img src="examples/3/assets/preview.png?raw=true"/></a></p>
+<p align="center"><a href="http://evancz.github.io/elm-components/examples/random-gifs-list.html"><img src="https://github.com/evancz/elm-components/tree/master/examples/3/assets/preview.png?raw=true"/></a></p>
 
