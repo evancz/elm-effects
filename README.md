@@ -403,3 +403,8 @@ So the key thing here is that we use `with` to put together a bunch of transacti
 ## Example 3 - A List of Random GIFs
 
 [**TRY IT OUT!!!**](http://evancz.github.io/elm-components/examples/random-gifs-list.html)
+
+
+## Example 4 - Animation
+
+[**TRY IT OUT!!!**](http://evancz.github.io/elm-components/examples/animation-pair.html)
