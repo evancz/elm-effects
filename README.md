@@ -6,6 +6,15 @@ This package is the next step in [The Elm Architecture][arch], making it easy to
 
 [arch]: https://github.com/evancz/elm-architecture-tutorial/
 
+The following tutorial will work through the following examples:
+
+  - [Random GIF fetcher](http://evancz.github.io/elm-components/examples/random-gifs.html) &mdash; [code](examples/1)
+  - [Pair of random GIFs](http://evancz.github.io/elm-components/examples/random-gifs-pair.html) &mdash; [code](examples/2)
+  - [List of random GIFs](http://evancz.github.io/elm-components/examples/random-gifs-list.html) &mdash; [code](examples/3)
+  - [Animating Components](http://evancz.github.io/elm-components/examples/animating-pair.html) &mdash; [code](examples/4)
+
+The goal of these examples is to build an intuition of the general architecture pattern and how to use this library, so you can go do fancier stuff in your project.
+
 
 ## The General Pattern
 
