@@ -9,7 +9,7 @@ import Svg exposing (svg, rect, g, text, text')
 import Svg.Attributes exposing (..)
 import Svg.Events exposing (onClick)
 import Task
-import Components as C exposing (Transaction, done, request, animationFrame, Never)
+import Transaction exposing (Transaction, done, requestTick, Never)
 
 
 -- MODEL
@@ -40,7 +40,7 @@ update : Message -> Model -> Transaction Message Model
 update msg model =
   case msg of
     Spin ->
-      request (animationFrame Tick) model
+      requestTick Tick model
 
     Tick time ->
       let
@@ -60,7 +60,7 @@ update msg model =
             , time = Nothing
             }
         else
-          request (animationFrame Tick)
+          requestTick Tick
             { angle = model.angle
             , fraction = newFraction
             , time = Just time
@@ -78,6 +78,7 @@ view address model =
     svg
       [ width "200", height "200", viewBox "0 0 200 200" ]
       [ g [ transform ("translate(100, 100) rotate(" ++ toString angle ++ ")")
+          , onClick (Signal.message address Spin)
           ]
           [ rect
               [ x "-50"
@@ -87,7 +88,6 @@ view address model =
               , rx "15"
               , ry "15"
               , style "fill: #60B5CC;"
-              , onClick (Signal.message address Spin)
               ]
               []
           , text' [ fill "white", textAnchor "middle" ] [ text "Click me!" ]

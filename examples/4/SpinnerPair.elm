@@ -1,18 +1,20 @@
 module SpinnerPair where
 
-import Components as C exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Task
 import Spinner
+import Start
+import Task
+import Transaction exposing (Transaction, done, tag, with, with2, Never)
 
 
 app =
-  C.start
+  Start.start
     { init = init
     , update = update
     , view = view
+    , inputs = []
     }
 
 
