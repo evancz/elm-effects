@@ -58,7 +58,7 @@ Let’s look at a simple example to get a feel for how these things work.
 
 ## Example 1 - Random GIFs
 
-<p align="center"><a href="http://evancz.github.io/elm-components/examples/random-gifs"><img src ="examples/1/assets/preview.png?raw=true"/></a></p>
+<p align="center"><a href="http://evancz.github.io/elm-components/examples/random-gifs.html"><img src="examples/1/assets/preview.png?raw=true"/></a></p>
 
 This example is a simple component that fetches random gifs from giphy.com with the topic “funny cats”. To follow along, run the following commands:
 
@@ -296,7 +296,7 @@ Alright, now that we have seen the definition of `with` let’s see it in practi
 
 ## Example 2 - A Pair of Random GIFs
 
-<p align="center"><a href="http://evancz.github.io/elm-components/examples/random-gifs-pair"><img src ="examples/2/assets/preview.png?raw=true"/></a></p>
+<p align="center"><a href="http://evancz.github.io/elm-components/examples/random-gifs-pair.html"><img src="examples/2/assets/preview.png?raw=true"/></a></p>
 
 In this example we are going to have **two** random GIF viewers. The cool part is that we will reuse the `RandomGif` module from example 1 without changing the logic at all.
 
@@ -393,5 +393,5 @@ So the key thing here is that we use `with` to put together a bunch of transacti
 
 ## Example 3 - A List of Random GIFs
 
-<p align="center"><a href="http://evancz.github.io/elm-components/examples/random-gifs-list"><img src ="examples/3/assets/preview.png?raw=true"/></a></p>
+<p align="center"><a href="http://evancz.github.io/elm-components/examples/random-gifs-list.html"><img src="examples/3/assets/preview.png?raw=true"/></a></p>
 
