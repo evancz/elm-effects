@@ -313,7 +313,7 @@ Alright, now that we have seen the definition of `with` let’s see it in practi
 
 In this example we are going to have **two** random GIF viewers. The cool part is that we will reuse the `RandomGif` module from example 1 without changing the logic at all.
 
-To follow along, run the following commands from the `elm-components/` directory:
+To follow along, run the following commands from your `elm-components/` directory:
 
 ```bash
 cd examples/2/
@@ -408,7 +408,26 @@ So the key thing here is that we use `with` to put together a bunch of transacti
 
 [**TRY IT OUT!!!**](http://evancz.github.io/elm-components/examples/random-gifs-list.html)
 
+This example lets you have a list of random GIF viewers where you can create the topics yourself. Again, we reuse the core `RandomGif` module exactly as is.
+
+To run it on your machine, run following commands from your `elm-components/` directory:
+
+```bash
+cd examples/3/
+elm-reactor
+```
+
+And then open up [http://localhost:8000](http://localhost:8000) in your browser and click on `RandomGifList.elm` to try it out.
+
+When you look through [the implementation](https://github.com/evancz/elm-components/tree/master/examples/3/RandomGifList.elm) you will see that it exactly corresponds to example 3 in [the Elm Architecture tutorial][arch]. We put all of our submodels in a list associated with an ID and do our operatons based on those IDs. The only thing new is that we are using transactions to put things together in the `init` and `update` function.
+
+Open an issue if you have read [this tutorial][arch] and read up to this point, but still think this needs more explanation!
+
 
 ## Example 4 - Animation
 
 [**TRY IT OUT!!!**](http://evancz.github.io/elm-components/examples/animation-pair.html)
+
+Now we have seen components with tasks that can be nested in arbitrary ways, but how does it work for animation?
+
+Interestingly, it is pretty much exactly the same!
