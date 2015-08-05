@@ -11,9 +11,7 @@ This package is the next step in [The Elm Architecture][arch], making it easy to
 
 The general pattern is a slight extension to [The Elm Architecture][arch]. If you have not read about that, do it now. Come on, here is [the link][arch] again. Go and read it!
 
-...
-
-Alright, now that you know about that, almost everything is the same here. We build up a component as a model, a way to update that model, and a way to view that model. As you look through the following skeleton code, just pretend that `Transaction Message Model` means “a new model”.
+Alright, now that you know about that, almost everything is the same here. We build up a component as a model, a way to update that model, and a way to view that model. As you look through the following skeleton code, read `Transaction Message Model` as “a new model” to get the basic intuition:
 
 
 ```elm
@@ -62,7 +60,7 @@ Let’s look at a simple example to get a feel for how these things work.
 
 <p align="center"><a href="http://evancz.github.io/elm-components/examples/random-gifs"><img src ="examples/1/assets/preview.png?raw=true"/></a></p>
 
-This example is a simple component that fetches random gifs from giphy.com with the topic “funny cats”. To follow along you can run the following commands:
+This example is a simple component that fetches random gifs from giphy.com with the topic “funny cats”. To follow along, run the following commands:
 
 ```bash
 git clone https://github.com/evancz/elm-components.git
@@ -72,12 +70,14 @@ elm-reactor
 
 And then open up [http://localhost:8000](http://localhost:8000) in your browser and click on `RandomGif.elm` to try it out.
 
-The next few subsections will be discussing parts of [the code](examples/1/RandomGif.elm), so keep that open so you can look through and contextualize this discussion. The code follows the normal model / update / view pattern that you see in every Elm program, but we will be emphasizing model and update because that’s where the new stuff happens.
+Make sure you look through [the implementation](examples/1/RandomGif.elm) right now. Notice that it is pretty much the same code as with The Elm Architecture: model, update, view. The only weird parts are that `init` and `update` return a `Transaction` and do a little bit of extra stuff.
+
+Okay, you looked through the code? From now on I am assuming you have!
 
 
 ### Modeling the Problem
 
-First we have the model of our random GIF finder.
+As always, the code starts out with a model of our random GIF finder.
 
 ```elm
 type alias Model =
@@ -86,9 +86,9 @@ type alias Model =
     }
 ```
 
-We need to know what the `topic` of the finder is and what `image` we are showing right this second. In our case, the topic we want is “funny cats” and the initial image should be loaded from giphy.
+We need to know what the `topic` of the finder is and what `image` we are showing right this second. What is new about this component is that we want the `image` to be retrieved from giphy.com through an HTTP request. We somehow need to talk about those effects to initialize our model.
 
-Let's start with a simple `init` function and get fancier.
+So let's start with a simple `init` function and slowly build up to one that does what we want.
 
 ```elm
 simpleInit : Transaction Message Model
@@ -118,7 +118,7 @@ So now we can create a GIF viewer for any topic, but we need a way to grab a ran
 ```elm
 init : String -> Transaction Message Model
 init topic =
-  request (getRandomImage topic)
+  requestTask (getRandomImage topic)
     { topic = topic
     , image = "assets/waiting.gif"
     }
@@ -133,7 +133,7 @@ Unlike `done`, `request` allows us to give a data result *and* request a certain
 
 The point is that “initializing” means both providing the current model and asking for some information from the world. The `Transaction` captures both halves of this.
 
-But now we are left wondering what happens when the task described by `getRandomImage model` gets run and has a result to give us. How do we bring that back into our random GIF component? The `elm-component` package is all about routing these events automatically, so it will just show up in our `update` function when it is done!
+But now we are left wondering what happens when the task described by `getRandomImage model` gets run and has a result to give us. How do we bring that back into our random GIF component? The `elm-component` package is all about routing these events automatically, so the results of that HTTP request will just show up in our `update` function!
 
 
 ### Updating the Model
@@ -146,7 +146,7 @@ type Message
     | NewImage (Maybe String)
 ```
 
-So the user can trigger a `RequestMore` message and when the server responds it will give us a `NewImage` message. We handle both these scenarios in our `update` function.
+So the user can trigger a `RequestMore` message by clicking the “More Please!” button, and when the server responds it will give us a `NewImage` message. We handle both these scenarios in our `update` function.
 
 ```elm
 update : Message -> Model -> Transaction Message Model
@@ -156,10 +156,7 @@ update msg model =
       request (getRandomImage model.topic) model
 
     NewImage maybeUrl ->
-      done
-        { model |
-            image <- Maybe.withDefault model.image maybeUrl
-        }
+      done { model | image <- Maybe.withDefault model.image maybeUrl }
 
 
 -- request : Task Never msg -> model -> Transaction msg model
@@ -182,7 +179,7 @@ So now we are able to request and effect and handle the result all from our comp
 
 ### Setting Up Effects
 
-One of the crucial aspects of this system is the `getRandomImage` function that actually describes how to get a random GIF. It uses [tasks][] and [the `Http` package][http], but I will try to give an overview of how these things are being used as we go. Let’s look at the definition:
+One of the crucial aspects of this system is the `getRandomImage` function that actually describes how to get a random GIF. It uses [tasks][] and [the `Http` package][http], and I will try to give an overview of how these things are being used as we go. Let’s look at the definition:
 
 [tasks]: http://elm-lang.org/guide/reactivity#tasks
 [http]: http://package.elm-lang.org/packages/evancz/elm-http/latest
@@ -222,6 +219,10 @@ decodeImageUrl =
 
 Once we have written this up, we are able to reuse `getRandomImage` in our `init` and `update` functions.
 
+One of the interesting things about the task returned by `getRandomImage` is that it can `Never` fail. The idea is that any potential failure *must* be handled explicitly. We do not want any tasks failing silently.
+
+I am going to try to explain exactly how that works, but it is not crucial to get every piece of this to use things! Okay, so every `Task` has a failure type and a success type. For example, an HTTP task may have a type like this `Task Http.Error String` such that we can fail with an `Http.Error` or succeed with a `String`. This makes it nice to chain a bunch of tasks together without worrying too much about errors. Now lets say our component requests a task, but the task fails. What happens then? Who gets notified? How do we recover? By making the failure type `Never` we force any potential errors into the success type such that they can be handled explicitly by the component. In our case, we use `Task.toMaybe : Task x a -> Task y (Maybe a)` so our `update` function must explicitly handle HTTP failures. This means tasks cannot silently fail, you always handle potential errors explicitly.
+
 
 ## More about Transactions
 
@@ -234,7 +235,7 @@ For the sake of making it concrete we can think of it like this:
 ```elm
 type alias Transaction msg model =
     { model : model
-    , desiredEffects : List (Effect msg)
+    , effects : List (Effect msg)
     }
 ```
 
@@ -244,7 +245,7 @@ This is not strictly true, but it is true enough for learning. A `Transaction` h
 
   - A list of effects that need to get run. These effects are the mix of tasks and ticks that were requested in the various `init` and `update` functions. So when we commit to the transaction, we also fire off all these effects. When those effects are complete, they will be fed back into the system, triggering new updates.
 
-So that is a decent conceptual framework for thinking about `Transactions`, but like I said, it is not the true representation. You can create a `Transaction` in a few ways:
+This is a decent conceptual framework for understanding `Transactions`, but like I said, the true representation is slightly fancier. You can create a `Transaction` in a few ways:
 
 ```elm
 done : model -> Transaction msg model
@@ -278,18 +279,17 @@ with
     -> Transaction msg model
 with transaction callback =
     let
-        {model, desiredEffects} =
+        {model, effects} =
             callback transaction.model
     in
         { model = model
-        , desiredEffects = transaction.desiredEffects ++ desiredEffects
+        , effects = transaction.effects ++ effects
         }
 ```
 
 So we use the `model` from the initial `transaction` to run the given `callback`. This gives us a new model and list of desired effects, but the most important detail is that we return a transaction that appends all the desired effects. This means the list of effects keeps building up as we work within this system. When we finally commit to a transaction, all of the effects can be run all at once.
 
 > **Note:** This means that this pattern can be used for query optimization. Since we have all the effects in a big list, we can look at exactly what data they want to fetch and be more clever about it. Maybe that means we can combine queries or grab things out of a local cache. All sorts of clever optimizations become really easy to do! We expect to see this come to `elm-components` as folks start finding cases where the effect manager can be more clever.
-
 
 Alright, now that we have seen the definition of `with` let’s see it in practice to really see what it can do!
 
@@ -298,85 +298,97 @@ Alright, now that we have seen the definition of `with` let’s see it in practi
 
 <p align="center"><a href="http://evancz.github.io/elm-components/examples/random-gifs-pair"><img src ="examples/2/assets/preview.png?raw=true"/></a></p>
 
-In this example we are going to have two random GIF viewers. We will reuse the `RandomGif` module from example 1 without changing the logic at all, just nest it inside of a fancier component.
+In this example we are going to have **two** random GIF viewers. The cool part is that we will reuse the `RandomGif` module from example 1 without changing the logic at all.
+
+To follow along, run the following commands from the `elm-components/` directory:
+
+```bash
+cd examples/2/
+elm-reactor
+```
+
+And then open up [http://localhost:8000](http://localhost:8000) in your browser and click on `RandomGifPair.elm` to try it out.
+
+Take a look through [the implementation](examples/2/RandomGifPair.elm) to get a feel for it. Again we have the typical model, update, and view sections. They all hinge upon the `Model` and `Message` type.
 
 ```elm
-module RandomGifPair where
-
-import Components as C exposing (..)
-import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing (..)
-import Task
-import RandomGif as Gif
-
-
-app =
-  C.start
-    { init = init "funny cats" "funny dogs"
-    , update = update
-    , view = view
-    }
-
-
-main =
-  app.html
-
-
-port tasks : Signal (Task.Task Never ())
-port tasks =
-  app.tasks
-
-
--- MODEL
-
 type alias Model =
     { left : Gif.Model
     , right : Gif.Model
     }
 
-
-init : String -> String -> Transaction Message Model
-init leftTopic rightTopic =
-  with2
-    (tag Left <| Gif.init leftTopic)
-    (tag Right <| Gif.init rightTopic)
-    (\left right -> done { left = left, right = right })
-
-
--- UPDATE
-
 type Message
     = Left Gif.Message
     | Right Gif.Message
+```
+
+Our model is a pair of `RandomGif` models, and our messages are just routing a `RandomGif` message to the left or right model.
+
+Digging deeper into the code, the only thing that is new is how things work in `init` and `update`. Interestingly, the `view` function actually helps explain what is going on there, so that is where we will start!
+
+```elm
+view : Signal.Address Message -> Model -> Html
+view address model =
+  div [ style [ ("display", "flex") ] ]
+    [ Gif.view (Signal.forwardTo address Left) model.left
+    , Gif.view (Signal.forwardTo address Right) model.right
+    ]
+```
+
+So here we are using `Signal.forwardTo` to tag all messages from these subcompononts with `Left` or `Right`. This makes it possible to route messages to the right place without needing to know who owns your particular component. A very similar strategy shows up with transactions. When we look at `init` we see it happening, so lets build up to that from a pseudocode version.
+
+```elm
+init : String -> String -> Transaction Message Model
+init leftTopic rightTopic =
+  -- initialize a random GIF viewer for `leftTopic`
+  -- initialize a random GIF viewer for `rightTopic`
+  -- put both of these models into our `Model`
+```
+
+This means we will want to be using `Gif.init` to initialize each subcomponent, so we will be creating two transactions and trying to put them together. Looking at the real code, we actually put all these pieces together:
+
+```elm
+init : String -> String -> Transaction Message Model
+init leftTopic rightTopic =
+  with2
+    (tag Left (Gif.init leftTopic))
+    (tag Right (Gif.init rightTopic))
+    (\left right -> done { left = left, right = right })
 
 
+-- Gif.init : String -> Transaction Gif.Message Gif.Model
+
+-- tag : (msg -> msg') -> Transaction msg model -> Transaction msg' model
+
+-- with2
+--     : Transaction msg a
+--     -> Transaction msg b
+--     -> (a -> b -> Transaction msg model)
+--     -> Transaction msg model
+```
+
+A couple things are going on here. First, we are using `with2` to combine two transactions into one. Whatever model is returned by the two transactions, we can use it to build up a third one, so we put the left and right results into our model. Second, we are doing something with this `tag` function. The new thing about transactions is that they may be associated with some effects, and the results of those effects need to be routed to the right place. So just like with `Signal.forwardTo` in our `view` function, the `tag` function is saying “whatever events are produced from `Gif.init`, route them to the `Left` GIF viewer”.
+
+We see the same thing happening in the `update` function:
+
+```elm
 update : Message -> Model -> Transaction Message Model
 update message model =
   case message of
     Left msg ->
       with
-        (tag Left <| Gif.update msg model.left)
+        (tag Left (Gif.update msg model.left))
         (\left -> done { model | left <- left })
 
     Right msg ->
       with
-        (tag Right <| Gif.update msg model.right)
+        (tag Right (Gif.update msg model.right))
         (\right -> done { model | right <- right })
-
-
--- VIEW
-
-(=>) = (,)
-
-
-view : Signal.Address Message -> Model -> Html
-view address model =
-  div [ style [ "display" => "flex" ] ]
-    [ Gif.view (Signal.forwardTo address Left) model.left
-    , Gif.view (Signal.forwardTo address Right) model.right
-    ]
 ```
+
+When we get an update for the `Left` GIF viewer, we go call its update function, resulting in a transaction. We use `tag Left` to make sure any effects from that transaction will be routed correctly. Finally we update our model to have the updated left model.
+
+So the key thing here is that we use `with` to put together a bunch of transactions and we use `tag` to make sure effects get routed to the right place.
 
 
 ## Example 3 - A List of Random GIFs
