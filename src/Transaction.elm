@@ -20,6 +20,26 @@ pattern that is crucial for any of these functions to make sense.
 # Fancy Transactions
 @docs request, Effect, task, tick, batch
 
+# Going higher than with3
+
+If you need to do this, you can chain `with3` like this:
+
+    with3
+      t1
+      t2
+      t3
+      (\m1 m2 m3 ->
+          with3
+            t4
+            t5
+            t6
+            (\m4 m5 m6 -> ...)
+      )
+
+It is not yet clear if this will ever be needed in well factored code, so open
+an issue describing your scenario if you think you have found a reason to add
+`with4` or others to this API!
+
 # Advanced Functions For Package Writers
 
 This is stuff that is used by the `Start` module to actually make things go.
@@ -188,11 +208,25 @@ map func effect =
 
 -- CHAINING
 
+{-| Tag any messages produced by a certain transaction. This makes it possible
+to route messages to the right components as the tasks and ticks complete. This
+is useful when embedding a component that produces transactions.
+
+See it in action in [the examples](https://github.com/evancz/elm-components#examples)
+that come with this repo.
+-}
 tag : (msg -> msg') -> Transaction msg model -> Transaction msg' model
 tag func (Transaction effect model) =
     Transaction (map func effect) model
 
 
+{-| Combine transactions. Read this as “with the result of this transaction, do
+the stuff described in the callback”. This is useful when embedding a component
+that produces transactions.
+
+See it in action in [the examples](https://github.com/evancz/elm-components#examples)
+that come with this repo.
+-}
 with : Transaction msg a -> (a -> Transaction msg model) -> Transaction msg model
 with (Transaction fx a) callback =
   let
@@ -202,6 +236,13 @@ with (Transaction fx a) callback =
       Transaction (Branch [fx, fx']) model
 
 
+{-| Combine transactions. Read this as “with the result of these two
+transactions, do the stuff described in the callback”. This is useful when
+embedding a component that produces transactions.
+
+See it in action in [the examples](https://github.com/evancz/elm-components#examples)
+that come with this repo.
+-}
 with2
     : Transaction msg a
     -> Transaction msg b
@@ -215,6 +256,7 @@ with2 (Transaction fx1 a) (Transaction fx2 b) callback =
       Transaction (Branch [fx1, fx2, fx']) model
 
 
+{-|-}
 with3
     : Transaction msg a
     -> Transaction msg b
@@ -229,6 +271,23 @@ with3 (Transaction fx1 a) (Transaction fx2 b) (Transaction fx3 c) callback =
       Transaction (Branch [fx1, fx2, fx3, fx']) model
 
 
+{-| Turn a list of transactions into a transaction that produces a list. This
+can be handy when you are working with a dynamic amount of subcomponents. It
+can be defined in terms of other operators, so if you run into other creative
+scenarios you may want to do something like it:
+
+    list : List (Transaction msg a) -> Transaction msg (List a)
+    list transactionList =
+      case transactionList of
+        [] ->
+            done []
+
+        transaction :: rest ->
+            with2
+              transaction
+              (list rest)
+              (\head tail -> done (head :: tail))
+-}
 list : List (Transaction msg a) -> Transaction msg (List a)
 list transactionList =
   case transactionList of
