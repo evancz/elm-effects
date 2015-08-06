@@ -8,23 +8,26 @@ This package is the next step in [The Elm Architecture][arch], making it easy to
 
 [arch]: https://github.com/evancz/elm-architecture-tutorial/
 
-<br>
+### Examples
 
-# Usage Tutorial
-
-The rest of this README is a tutorial that will work through the following examples:
+The `examples/` directory holds a couple examples:
 
   - [Random GIF fetcher](http://evancz.github.io/elm-components/examples/random-gifs.html) &mdash; [code](https://github.com/evancz/elm-components/tree/master/examples/1)
   - [Pair of random GIFs](http://evancz.github.io/elm-components/examples/random-gifs-pair.html) &mdash; [code](https://github.com/evancz/elm-components/tree/master/examples/2)
   - [List of random GIFs](http://evancz.github.io/elm-components/examples/random-gifs-list.html) &mdash; [code](https://github.com/evancz/elm-components/tree/master/examples/3)
   - [Animating Components](http://evancz.github.io/elm-components/examples/animation-pair.html) &mdash; [code](https://github.com/evancz/elm-components/tree/master/examples/4)
 
-The goal of these examples is to build an intuition of the general architecture pattern and how to use this library, so you can go do fancier stuff in your project.
+
+<br>
+
+# Tutorial
+
+The rest of the README is dedicated to running through the four examples uses of this library. We will gradually build from a general understanding of [The Elm Architecture][arch] to how to build modular components with effects using `Transaction` module.
 
 
 ## The General Pattern
 
-The general pattern is a slight extension to [The Elm Architecture][arch]. If you have not read about that, do it now. Come on, here is [the link][arch] again. Go and read it!
+The general pattern is a slight extension to [The Elm Architecture][arch]. If you have not read about that, do it now. Come on, here is [the link][arch]. Go and read it!
 
 Alright, now that you know about that, almost everything is the same here. We build up a component as a model, a way to update that model, and a way to view that model. As you look through the following skeleton code, read `Transaction Message Model` as “a new model” to get the basic intuition:
 
