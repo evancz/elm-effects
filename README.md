@@ -8,9 +8,9 @@ This package is the next step in [The Elm Architecture][arch], making it easy to
 
 [arch]: https://github.com/evancz/elm-architecture-tutorial/
 
-### Examples
+<br>
 
-The `examples/` directory holds a couple examples:
+# Examples
 
   - [Random GIF fetcher](http://evancz.github.io/elm-components/examples/random-gifs.html) &mdash; [code](https://github.com/evancz/elm-components/tree/master/examples/1)
   - [Pair of random GIFs](http://evancz.github.io/elm-components/examples/random-gifs-pair.html) &mdash; [code](https://github.com/evancz/elm-components/tree/master/examples/2)
@@ -22,7 +22,7 @@ The `examples/` directory holds a couple examples:
 
 # Tutorial
 
-The rest of the README is dedicated to running through the four examples uses of this library. We will gradually build from a general understanding of [The Elm Architecture][arch] to how to build modular components with effects using `Transaction` module.
+The rest of the README is dedicated to running through the four examples that come with this package. We will gradually build from a general understanding of [The Elm Architecture][arch] to a good understanding of how `Transaction` works and how it makes it possible to handle effects locally in each component.
 
 
 ## The General Pattern
