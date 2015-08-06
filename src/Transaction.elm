@@ -35,26 +35,78 @@ import Task
 
 -- TRANSACTIONS
 
+{-| Generally speaking, it represents an updated model. You had some current
+model and want it to become something else.
+
+It is a little trickier than that though. In addition to changing the model,
+you may want to trigger some HTTP requests or DB changes. A `Transaction` lets
+you describe that as part of the model update. We can then build up a big
+transaction, and when we commit to it, we get the new model and run a bunch of
+tasks.
+-}
 type Transaction msg model =
     Transaction (Effect msg) model
 
 
+{-| Just update the model, nothing fancy here.
+
+    type alias Model = { topic : String, gifUrl : String }
+
+    init : Transaction msg Model
+    init =
+      done { topic = "cats", gifUrl = "waiting.gif" }
+-}
 done : model -> Transaction msg model
 done model =
     Transaction Empty model
 
 
+{-| Update the model *and* request a task. The following examples shows how
+you might initialize your model if you need to fetch a resource via HTTP to
+really get things started.
+
+    type alias Model = { topic : String, gifUrl : String }
+
+    type Message = LoadImage String | ...
+
+    init : Transaction Message Model
+    init =
+      requestTask getRandomCatGif { topic = "cats", gifUrl = "waiting.gif" }
+
+    -- getRandomCatGif : Task Never Message
+
+Here we assumed the `getRandomCatGif` task is defined, but you can find a
+complete example in [the README of this package](https://github.com/evancz/elm-components)
+which has a comprehensive tutorial going through some nice examples that use
+this.
+-}
 requestTask : Task.Task Never msg -> model -> Transaction msg model
 requestTask task model =
     Transaction (Task task) model
 
 
+{-| Update the model *and* request a tick. It is useful for animation.
+
+You can find a complete example of its usage in
+[the README of this package](https://github.com/evancz/elm-components)
+which has a comprehensive tutorial. Search for the section on animation!
+-}
 requestTick : (Float -> msg) -> model -> Transaction msg model
 requestTick tagger model =
     Transaction (Tick tagger) model
 
 
-{-| This lets you request multiple tasks and ticks.
+{-| This lets you request multiple tasks and ticks. It is a generalization of
+`requestTask` and `requestTick` in case you want to get fancier.
+
+    requestTask myTask model =
+        request (task myTask) model
+
+    requestTick toMsg model =
+        request (tick toMsg) model
+
+    fancyTransaction =
+        request (batch [task myTask, tick toMsg]) model
 -}
 request : Effect msg -> model -> Transaction msg model
 request effect model =
