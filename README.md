@@ -1,5 +1,7 @@
 # Elm Components
 
+<span style="color: red;">**NOT FOR DISTRIBUTION - EVERYTHING IN THIS REPO IS A PRIVATE DRAFT**</span>
+
 Create infinitely nestable components that are easy to write, test, and reuse.
 
 This package is the next step in [The Elm Architecture][arch], making it easy to create components that request JSON, have animations, talk to databases, etc.
