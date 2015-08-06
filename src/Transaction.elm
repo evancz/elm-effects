@@ -190,8 +190,8 @@ batch =
     Branch
 
 
-map : (a -> b) -> Effect a -> Effect b
-map func effect =
+effectMap : (a -> b) -> Effect a -> Effect b
+effectMap func effect =
   case effect of
     Task task ->
         Task (Task.map func task)
@@ -203,7 +203,7 @@ map func effect =
         Empty
 
     Branch effectList ->
-        Branch (List.map (map func) effectList)
+        Branch (List.map (effectMap func) effectList)
 
 
 -- CHAINING
@@ -217,7 +217,7 @@ that come with this repo.
 -}
 tag : (msg -> msg') -> Transaction msg model -> Transaction msg' model
 tag func (Transaction effect model) =
-    Transaction (map func effect) model
+    Transaction (effectMap func effect) model
 
 
 {-| Combine transactions. Read this as “with the result of this transaction, do
