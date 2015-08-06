@@ -38,7 +38,12 @@ update : Message -> Model -> Transaction Message Model
 update msg model =
   case msg of
     Spin ->
-      requestTick Tick model
+      case model.animationState of
+        Nothing ->
+          requestTick Tick model
+
+        Just _ ->
+          done model
 
     Tick clockTime ->
       let

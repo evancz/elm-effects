@@ -484,7 +484,12 @@ update : Message -> Model -> Transaction Message Model
 update msg model =
   case msg of
     Spin ->
-      requestTick Tick model
+      case model.animationState of
+        Nothing ->
+          requestTick Tick model
+
+        Just _ ->
+          done model
 
     Tick clockTime ->
       let
@@ -510,7 +515,7 @@ update msg model =
 
 There are two kinds of `Message` we need to handle:
 
-  - `Spin` indicates that a user clicked the shape, requesting a spin. When we handle that in the `update` function, we just request a clock tick.
+  - `Spin` indicates that a user clicked the shape, requesting a spin. So in the `update` function, we request a clock tick if there is no animation going and just let things stay as is if one is already going.
   - `Tick` indicates that we have gotten a clock tick so we need to take an animation step. In the `update` function this means we need to update our `animationState`. So first we check if there is an animation in progress. If so, we just figure out what the `newCount` is by taking the current `count` and adding a time diff to it. If the count is greater than 1000 we stop animating and stop requesting new clock ticks. Otherwise we update the animation state and request another clock tick.
 
 Again, I think we can cut this code down as we write more code like this and start seeing the general pattern. Should be exciting to find!
