@@ -1,6 +1,6 @@
 # Elm Components
 
-<span style="color: red;">**NOT FOR DISTRIBUTION - EVERYTHING IN THIS REPO IS A PRIVATE DRAFT**</span>
+**NOT FOR DISTRIBUTION - EVERYTHING IN THIS REPO IS A PRIVATE DRAFT**
 
 Create infinitely nestable components that are easy to write, test, and reuse.
 
