@@ -1,7 +1,6 @@
-module Spinner (Model, Message, init, update, view) where
+module SpinSquare (Model, Message, init, update, view) where
 
-import Debug
-import Easing
+import Easing exposing (ease, easeOutBounce, float)
 import Html exposing (Html)
 import Http
 import Json.Decode as Json
@@ -16,14 +15,13 @@ import Transaction exposing (Transaction, done, requestTick, Never)
 
 type alias Model =
     { angle : Float
-    , fraction : Float
-    , time : Maybe Float
+    , animationState : Maybe { prevClockTime : Float, count : Float }
     }
 
 
 init : Transaction Message Model
 init =
-  done { angle = 0, fraction = 0, time = Nothing }
+  done { angle = 0, animationState = Nothing }
 
 
 rotateStep = 90
@@ -42,28 +40,25 @@ update msg model =
     Spin ->
       requestTick Tick model
 
-    Tick time ->
+    Tick clockTime ->
       let
-        diff =
-          case model.time of
-            Nothing -> 0
-            Just prev ->
-              time - prev
+        newCount =
+          case model.animationState of
+            Nothing ->
+              0
 
-        newFraction =
-          model.fraction + diff
+            Just {count, prevClockTime} ->
+              count + (clockTime - prevClockTime)
       in
-        if newFraction > 1000 then
+        if newCount > 1000 then
           done
             { angle = model.angle + rotateStep
-            , fraction = 0
-            , time = Nothing
+            , animationState = Nothing
             }
         else
           requestTick Tick
             { angle = model.angle
-            , fraction = newFraction
-            , time = Just time
+            , animationState = Just { count = newCount, prevClockTime = clockTime }
             }
 
 
@@ -73,7 +68,12 @@ view : Signal.Address Message -> Model -> Html
 view address model =
   let
     angle =
-      model.angle + Easing.ease Easing.easeOutBounce Easing.float 0 rotateStep 1000 model.fraction
+      case model.animationState of
+        Nothing ->
+          model.angle
+
+        Just {count} ->
+          model.angle + ease easeOutBounce float 0 rotateStep 1000 count
   in
     svg
       [ width "200", height "200", viewBox "0 0 200 200" ]
