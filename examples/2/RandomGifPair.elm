@@ -5,7 +5,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Start
 import Task
-import Transaction exposing (..)
+import Effects as Fx exposing (Effects, map, batch, Never)
 
 import RandomGif as Gif
 
@@ -36,12 +36,15 @@ type alias Model =
     }
 
 
-init : String -> String -> Transaction Message Model
+init : String -> String -> (Model, Effects Message)
 init leftTopic rightTopic =
-  with2
-    (tag Left <| Gif.init leftTopic)
-    (tag Right <| Gif.init rightTopic)
-    (\left right -> done { left = left, right = right })
+  let
+    (model1, fx1) = Gif.init leftTopic
+    (model2, fx2) = Gif.init rightTopic
+  in
+    ( Model model1 model2
+    , batch [map Left fx1, map Right fx2]
+    )
 
 
 -- UPDATE
@@ -51,18 +54,24 @@ type Message
     | Right Gif.Message
 
 
-update : Message -> Model -> Transaction Message Model
+update : Message -> Model -> (Model, Effects Message)
 update message model =
   case message of
     Left msg ->
-      with
-        (tag Left <| Gif.update msg model.left)
-        (\left -> done { model | left <- left })
+      let
+        (left, fx) = Gif.update msg model.left
+      in
+        ( Model left model.right
+        , map Left fx
+        )
 
     Right msg ->
-      with
-        (tag Right <| Gif.update msg model.right)
-        (\right -> done { model | right <- right })
+      let
+        (right, fx) = Gif.update msg model.right
+      in
+        ( Model model.left right
+        , map Right fx
+        )
 
 
 -- VIEW
