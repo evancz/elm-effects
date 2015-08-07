@@ -8,6 +8,7 @@ import Svg exposing (svg, rect, g, text, text')
 import Svg.Attributes exposing (..)
 import Svg.Events exposing (onClick)
 import Task
+import Time exposing (Time, second)
 import Transaction exposing (Transaction, done, requestTick, Never)
 
 
@@ -15,7 +16,7 @@ import Transaction exposing (Transaction, done, requestTick, Never)
 
 type alias Model =
     { angle : Float
-    , animationState : Maybe { prevClockTime : Float, count : Float }
+    , animationState : Maybe { prevClockTime : Time,  timeDiff: Time }
     }
 
 
@@ -25,6 +26,11 @@ init =
 
 
 rotateStep = 90
+duration = second
+
+rotationAnimation : Time -> Float
+rotationAnimation currentTime =
+    ease easeOutBounce float 0 rotateStep duration currentTime
 
 
 -- UPDATE
@@ -47,15 +53,15 @@ update msg model =
 
     Tick clockTime ->
       let
-        newCount =
+        newTimeDiff =
           case model.animationState of
             Nothing ->
               0
 
-            Just {count, prevClockTime} ->
-              count + (clockTime - prevClockTime)
+            Just {timeDiff, prevClockTime} ->
+              timeDiff + (clockTime - prevClockTime)
       in
-        if newCount > 1000 then
+        if newTimeDiff > duration then
           done
             { angle = model.angle + rotateStep
             , animationState = Nothing
@@ -63,7 +69,7 @@ update msg model =
         else
           requestTick Tick
             { angle = model.angle
-            , animationState = Just { count = newCount, prevClockTime = clockTime }
+            , animationState = Just { timeDiff = newTimeDiff, prevClockTime = clockTime }
             }
 
 
@@ -77,8 +83,8 @@ view address model =
         Nothing ->
           model.angle
 
-        Just {count} ->
-          model.angle + ease easeOutBounce float 0 rotateStep 1000 count
+        Just {timeDiff} ->
+          model.angle + rotationAnimation timeDiff
   in
     svg
       [ width "200", height "200", viewBox "0 0 200 200" ]
