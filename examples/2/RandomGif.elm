@@ -1,5 +1,6 @@
 module RandomGif (Model, init, Message, update, view) where
 
+import Effects as Fx exposing (Effects, Never)
 import Html exposing (..)
 import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
@@ -7,7 +8,6 @@ import Http
 import Json.Decode as Json
 import Start
 import Task
-import Effects as FX exposing (Effects, Never)
 
 
 -- MODEL
@@ -40,7 +40,7 @@ update msg model =
 
     NewImage maybeUrl ->
       ( Model model.topic (Maybe.withDefault model.image maybeUrl)
-      , FX.none
+      , Fx.none
       )
 
 
@@ -85,7 +85,7 @@ getRandomImage topic =
   Http.get decodeImageUrl (randomUrl topic)
     |> Task.toMaybe
     |> Task.map NewImage
-    |> FX.task
+    |> Fx.task
 
 
 randomUrl : String -> String

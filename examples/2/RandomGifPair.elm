@@ -1,11 +1,11 @@
 module RandomGifPair where
 
+import Effects as Fx exposing (Effects, map, batch, Never)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Start
 import Task
-import Effects as Fx exposing (Effects, map, batch, Never)
 
 import RandomGif as Gif
 
