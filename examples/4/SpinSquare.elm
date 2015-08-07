@@ -16,7 +16,7 @@ import Transaction exposing (Transaction, done, requestTick, Never)
 
 type alias Model =
     { angle : Float
-    , animationState : Maybe { prevClockTime : Time,  timeDiff: Time }
+    , animationState : Maybe { prevClockTime : Time,  elapsedTime: Time }
     }
 
 
@@ -53,15 +53,15 @@ update msg model =
 
     Tick clockTime ->
       let
-        newTimeDiff =
+        newElapsedTime =
           case model.animationState of
             Nothing ->
               0
 
-            Just {timeDiff, prevClockTime} ->
-              timeDiff + (clockTime - prevClockTime)
+            Just {elapsedTime, prevClockTime} ->
+              elapsedTime + (clockTime - prevClockTime)
       in
-        if newTimeDiff > duration then
+        if newElapsedTime > duration then
           done
             { angle = model.angle + rotateStep
             , animationState = Nothing
@@ -69,7 +69,7 @@ update msg model =
         else
           requestTick Tick
             { angle = model.angle
-            , animationState = Just { timeDiff = newTimeDiff, prevClockTime = clockTime }
+            , animationState = Just { elapsedTime = newElapsedTime, prevClockTime = clockTime }
             }
 
 
@@ -83,8 +83,8 @@ view address model =
         Nothing ->
           model.angle
 
-        Just {timeDiff} ->
-          model.angle + rotationAnimation timeDiff
+        Just {elapsedTime} ->
+          model.angle + rotationAnimation elapsedTime
   in
     svg
       [ width "200", height "200", viewBox "0 0 200 200" ]
