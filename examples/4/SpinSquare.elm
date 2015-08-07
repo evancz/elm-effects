@@ -28,11 +28,6 @@ init =
 rotateStep = 90
 duration = second
 
-rotationAnimation : Time -> Float
-rotationAnimation currentTime =
-    ease easeOutBounce float 0 rotateStep duration currentTime
-
-
 -- UPDATE
 
 type Message
@@ -74,6 +69,10 @@ update msg model =
 
 
 -- VIEW
+
+rotationAnimation : Time -> Float
+rotationAnimation currentTime =
+    ease easeOutBounce float 0 rotateStep duration currentTime
 
 view : Signal.Address Message -> Model -> Html
 view address model =

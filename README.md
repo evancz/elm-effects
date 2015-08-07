@@ -229,7 +229,7 @@ randomUrl topic =
 
 
 -- A JSON decoder that takes a big chunk of JSON spit out by
--- giphy and extracts the string at `json.data.image_url` 
+-- giphy and extracts the string at `json.data.image_url`
 decodeImageUrl : Json.Decoder String
 decodeImageUrl =
   Json.at ["data", "image_url"] Json.string
@@ -437,7 +437,7 @@ Interestingly, it is pretty much exactly the same!
 
 [**TRY IT OUT!!!**](http://evancz.github.io/elm-components/examples/animation-pair.html)
 
-This example is a pair of clickable squares. When you click a square, it rotates 90 degrees. Overall the code is an adapted form of example 2 where we keep all the logic for animation lives in `SpinSquare.elm` which we then reuse multiple times in `SpinSquarePair.elm`. 
+This example is a pair of clickable squares. When you click a square, it rotates 90 degrees. Overall the code is an adapted form of example 2 where we keep all the logic for animation lives in `SpinSquare.elm` which we then reuse multiple times in `SpinSquarePair.elm`.
 
 To run it on your machine, run following commands from your `elm-components/` directory:
 
@@ -458,7 +458,7 @@ All the new and interesting stuff is happening in `SpinSquare`, so we are going 
 ```elm
 type alias Model =
     { angle : Float
-    , animationState : Maybe { prevClockTime : Float, time : Float }
+    , animationState : Maybe { prevClockTime : Time,  elapsedTime: Time }
     }
 
 
@@ -468,12 +468,13 @@ init =
 
 
 rotateStep = 90
+duration = second
 ```
 
 So our core model is the `angle` that the square is currently at and then some `animationState` to track what is going on with any ongoing animation. If there is no animation it is `Nothing`, but if something is happening it holds:
-  
+
   * `prevClockTime` &mdash; The most recent clock time which we will use for calculating time diffs. It will help us know exactly how many milliseconds have passed since last frame.
-  * `count` &mdash; A number between 0 and 1000 that tells us how far we are in the animation.
+  * `elapsedTime` &mdash; Elapsed time between 0 and 1 second that tells us how far we are in the animation.
 
 The `rotateStep` constant is just declaring how far it turns on each click. You can mess with that and everything should keep working.
 
@@ -493,15 +494,15 @@ update msg model =
 
     Tick clockTime ->
       let
-        newCount =
+        newElapsedTime =
           case model.animationState of
             Nothing ->
               0
 
-            Just {count, prevClockTime} ->
-              count + (clockTime - prevClockTime)
+            Just {elapsedTime, prevClockTime} ->
+              elapsedTime + (clockTime - prevClockTime)
       in
-        if newCount > 1000 then
+        if newElapsedTime > duration then
           done
             { angle = model.angle + rotateStep
             , animationState = Nothing
@@ -509,14 +510,14 @@ update msg model =
         else
           requestTick Tick
             { angle = model.angle
-            , animationState = Just { count = newCount, prevClockTime = clockTime }
+            , animationState = Just { elapsedTime = newElapsedTime, prevClockTime = clockTime }
             }
 ```
 
 There are two kinds of `Message` we need to handle:
 
   - `Spin` indicates that a user clicked the shape, requesting a spin. So in the `update` function, we request a clock tick if there is no animation going and just let things stay as is if one is already going.
-  - `Tick` indicates that we have gotten a clock tick so we need to take an animation step. In the `update` function this means we need to update our `animationState`. So first we check if there is an animation in progress. If so, we just figure out what the `newCount` is by taking the current `count` and adding a time diff to it. If the count is greater than 1000 we stop animating and stop requesting new clock ticks. Otherwise we update the animation state and request another clock tick.
+  - `Tick` indicates that we have gotten a clock tick so we need to take an animation step. In the `update` function this means we need to update our `animationState`. So first we check if there is an animation in progress. If so, we just figure out what the `newElapsedTime` is by taking the current `elapsedTime` and adding a time diff to it. If the elapsed time is greater than one second we stop animating and stop requesting new clock ticks. Otherwise we update the animation state and request another clock tick.
 
 Again, I think we can cut this code down as we write more code like this and start seeing the general pattern. Should be exciting to find!
 
@@ -530,6 +531,10 @@ We are using the [@Dandandan](https://github.com/Dandandan)’s [easing package]
 ```elm
 -- import Easing exposing (ease, easeOutBounce, float)
 
+rotationAnimation : Time -> Float
+rotationAnimation currentTime =
+    ease easeOutBounce float 0 rotateStep duration currentTime
+
 view : Signal.Address Message -> Model -> Html
 view address model =
   let
@@ -538,8 +543,8 @@ view address model =
         Nothing ->
           model.angle
 
-        Just {count} ->
-          model.angle + ease easeOutBounce float 0 rotateStep 1000 count
+        Just {elapsedTime} ->
+          model.angle + rotationAnimation elapsedTime
   in
     svg
       [ width "200", height "200", viewBox "0 0 200 200" ]
@@ -563,7 +568,7 @@ view address model =
 
 The SVG stuff here is pretty typical, just showing some nodes in certain places. The interesting thing is how we calculate `angle` if there is an ongoing animation.
 
-So the `ease` function is taking a number between 0 and 1000. It then turns that into a number between 0 and `rotateStep` which we set to 90 degrees up top. You also provide an easing. In our case we gave `easeOutBounce` which means as we slide from 0 to 1000, we will get a number between 0 and 90 with that easing added. Pretty crazy! Try swapping `easeOutBounce` out for [other easings](http://package.elm-lang.org/packages/Dandandan/Easing/latest/Easing) and see how it looks!
+So the `ease` function is taking a time value between 0 and 1 second. It then turns that into a number between 0 and `rotateStep` which we set to 90 degrees up top. You also provide an easing. In our case we gave `easeOutBounce` which means as we slide from 0 to 1 second, we will get a number between 0 and 90 with that easing added. Pretty crazy! Try swapping `easeOutBounce` out for [other easings](http://package.elm-lang.org/packages/Dandandan/Easing/latest/Easing) and see how it looks!
 
 From here, we wire everything together in `SpinSquarePair`, but that code is pretty much exactly the same as in example 2.
 
