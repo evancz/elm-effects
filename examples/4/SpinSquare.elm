@@ -8,6 +8,7 @@ import Svg exposing (svg, rect, g, text, text')
 import Svg.Attributes exposing (..)
 import Svg.Events exposing (onClick)
 import Task
+import Time exposing (Time, second)
 import Transaction exposing (Transaction, done, requestTick, Never)
 
 
@@ -15,7 +16,7 @@ import Transaction exposing (Transaction, done, requestTick, Never)
 
 type alias Model =
     { angle : Float
-    , animationState : Maybe { prevClockTime : Float, count : Float }
+    , animationState : Maybe { prevClockTime : Time,  elapsedTime: Time }
     }
 
 
@@ -25,13 +26,13 @@ init =
 
 
 rotateStep = 90
-
+duration = second
 
 -- UPDATE
 
 type Message
     = Spin
-    | Tick Float
+    | Tick Time
 
 
 update : Message -> Model -> Transaction Message Model
@@ -47,15 +48,15 @@ update msg model =
 
     Tick clockTime ->
       let
-        newCount =
+        newElapsedTime =
           case model.animationState of
             Nothing ->
               0
 
-            Just {count, prevClockTime} ->
-              count + (clockTime - prevClockTime)
+            Just {elapsedTime, prevClockTime} ->
+              elapsedTime + (clockTime - prevClockTime)
       in
-        if newCount > 1000 then
+        if newElapsedTime > duration then
           done
             { angle = model.angle + rotateStep
             , animationState = Nothing
@@ -63,22 +64,25 @@ update msg model =
         else
           requestTick Tick
             { angle = model.angle
-            , animationState = Just { count = newCount, prevClockTime = clockTime }
+            , animationState = Just { elapsedTime = newElapsedTime, prevClockTime = clockTime }
             }
 
 
 -- VIEW
 
+toOffset : Maybe { prevClockTime : Time, elapsedTime: Time } -> Float
+toOffset animationState =
+  case animationState of
+    Nothing ->
+      0
+    Just {elapsedTime} ->
+      ease easeOutBounce float 0 rotateStep duration elapsedTime
+
 view : Signal.Address Message -> Model -> Html
 view address model =
   let
     angle =
-      case model.animationState of
-        Nothing ->
-          model.angle
-
-        Just {count} ->
-          model.angle + ease easeOutBounce float 0 rotateStep 1000 count
+      model.angle + toOffset model.animationState
   in
     svg
       [ width "200", height "200", viewBox "0 0 200 200" ]
