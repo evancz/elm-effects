@@ -72,7 +72,7 @@ update msg model =
 
 rotationAnimation : Time -> Float
 rotationAnimation currentTime =
-    ease easeOutBounce float 0 rotateStep duration currentTime
+  ease easeOutBounce float 0 rotateStep duration currentTime
 
 view : Signal.Address Message -> Model -> Html
 view address model =
