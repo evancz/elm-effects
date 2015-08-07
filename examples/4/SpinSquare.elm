@@ -32,7 +32,7 @@ duration = second
 
 type Message
     = Spin
-    | Tick Float
+    | Tick Time
 
 
 update : Message -> Model -> Transaction Message Model
