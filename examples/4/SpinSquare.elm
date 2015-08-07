@@ -70,20 +70,19 @@ update msg model =
 
 -- VIEW
 
-rotationAnimation : Time -> Float
-rotationAnimation currentTime =
-  ease easeOutBounce float 0 rotateStep duration currentTime
+toOffset : Maybe { prevClockTime : Time, elapsedTime: Time } -> Float
+toOffset animationState =
+  case animationState of
+    Nothing ->
+      0
+    Just {elapsedTime} ->
+      ease easeOutBounce float 0 rotateStep duration elapsedTime
 
 view : Signal.Address Message -> Model -> Html
 view address model =
   let
     angle =
-      case model.animationState of
-        Nothing ->
-          model.angle
-
-        Just {elapsedTime} ->
-          model.angle + rotationAnimation elapsedTime
+      model.angle + toOffset model.animationState
   in
     svg
       [ width "200", height "200", viewBox "0 0 200 200" ]
