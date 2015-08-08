@@ -1,5 +1,6 @@
 module RandomGif (Model, init, Message, update, view) where
 
+import Effects as Fx exposing (Effects, Errorless)
 import Html exposing (..)
 import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
@@ -7,7 +8,6 @@ import Http
 import Json.Decode as Json
 import Start
 import Task
-import Transaction exposing (Transaction, done, requestTask, Never)
 
 
 -- MODEL
@@ -18,12 +18,11 @@ type alias Model =
     }
 
 
-init : String -> Transaction Message Model
+init : String -> (Model, Effects Message)
 init topic =
-  requestTask (getRandomImage topic)
-    { topic = topic
-    , image = "assets/waiting.gif"
-    }
+  ( Model topic "assets/waiting.gif"
+  , getRandomImage topic
+  )
 
 
 -- UPDATE
@@ -33,14 +32,16 @@ type Message
     | NewImage (Maybe String)
 
 
-update : Message -> Model -> Transaction Message Model
+update : Message -> Model -> (Model, Effects Message)
 update msg model =
   case msg of
     RequestMore ->
-      requestTask (getRandomImage model.topic) model
+        model
+            => getRandomImage model.topic
 
     NewImage maybeUrl ->
-      done { model | image <- Maybe.withDefault model.image maybeUrl }
+        Model model.topic (Maybe.withDefault model.image maybeUrl)
+            => Fx.none
 
 
 -- VIEW
@@ -79,11 +80,12 @@ imgStyle url =
 
 -- EFFECTS
 
-getRandomImage : String -> Task.Task Never Message
+getRandomImage : String -> Effects Message
 getRandomImage topic =
   Http.get decodeImageUrl (randomUrl topic)
     |> Task.toMaybe
     |> Task.map NewImage
+    |> Fx.task
 
 
 randomUrl : String -> String

@@ -10,7 +10,7 @@ get it all running for you!
 
 import Html exposing (Html)
 import Task
-import Transaction exposing (Transaction, Never)
+import Effects exposing (Effects, Errorless)
 
 
 {-| The configuration of an app follows the basic model / update / view pattern
@@ -27,8 +27,8 @@ get values from JavaScript, they will come in through a port as a signal which
 you can pipe into your app as one of the `inputs`.
 -}
 type alias Config msg model =
-    { init : Transaction msg model
-    , update : msg -> model -> Transaction msg model
+    { init : (model, Effects msg)
+    , update : msg -> model -> (model, Effects msg)
     , view : Signal.Address msg -> model -> Html
     , inputs : List (Signal.Signal msg)
     }
@@ -50,7 +50,7 @@ type alias Config msg model =
 type alias App model =
     { html : Signal Html
     , model : Signal model
-    , tasks : Signal (Task.Task Never ())
+    , tasks : Signal (Task.Task Errorless ())
     }
 
 
@@ -63,7 +63,7 @@ type alias App model =
     main =
         app.html
 
-    port tasks : Signal (Task.Task Never ())
+    port tasks : Signal (Task.Task Errorless ())
     port tasks =
         app.tasks
 
@@ -81,32 +81,22 @@ start config =
         address =
             Signal.forwardTo messages.address Just
 
-        -- update : Maybe msg -> Transaction fx model -> Transaction fx model
-        update (Just msg) transaction =
-            config.update msg (Transaction.destruct transaction).model
+        -- update : Maybe msg -> (model, Effects msg) -> (model, Effects msg)
+        update (Just msg) (model, _) =
+            config.update msg model
 
         -- inputs : Signal (Maybe msg)
         inputs =
             Signal.mergeMany (messages.signal :: List.map (Signal.map Just) config.inputs)
 
-        -- transactions : Signal (Transaction fx model)
-        transactions =
+        -- effectsAndModel : Signal (model, Effects msg)
+        effectsAndModel =
             Signal.foldp update config.init inputs
 
-        -- split : Transaction fx model -> (model, Task Never ())
-        split transaction =
-            let
-                { model, effect } = Transaction.destruct transaction
-            in
-                (model, Transaction.effectToTask address effect)
-
-        modelAndTasks =
-            Signal.map split transactions
-
         model =
-            Signal.map fst modelAndTasks
+            Signal.map fst effectsAndModel
     in
         { html = Signal.map (config.view address) model
         , model = model
-        , tasks = Signal.map snd modelAndTasks
+        , tasks = Signal.map (Effects.toTask address << snd) effectsAndModel
         }
