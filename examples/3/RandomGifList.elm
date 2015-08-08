@@ -1,6 +1,6 @@
 module RandomGifList where
 
-import Effects as Fx exposing (Effects, map, batch, Never)
+import Effects as Fx exposing (Effects, map, batch, Errorless)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -24,7 +24,7 @@ main =
   app.html
 
 
-port tasks : Signal (Task.Task Never ())
+port tasks : Signal (Task.Task Errorless ())
 port tasks =
   app.tasks
 

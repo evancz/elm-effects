@@ -10,7 +10,7 @@ get it all running for you!
 
 import Html exposing (Html)
 import Task
-import Effects exposing (Effects, Never)
+import Effects exposing (Effects, Errorless)
 
 
 {-| The configuration of an app follows the basic model / update / view pattern
@@ -50,7 +50,7 @@ type alias Config msg model =
 type alias App model =
     { html : Signal Html
     , model : Signal model
-    , tasks : Signal (Task.Task Never ())
+    , tasks : Signal (Task.Task Errorless ())
     }
 
 
@@ -63,7 +63,7 @@ type alias App model =
     main =
         app.html
 
-    port tasks : Signal (Task.Task Never ())
+    port tasks : Signal (Task.Task Errorless ())
     port tasks =
         app.tasks
 

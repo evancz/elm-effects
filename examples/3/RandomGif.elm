@@ -1,6 +1,6 @@
 module RandomGif (Model, init, Message, update, view) where
 
-import Effects as Fx exposing (Effects, Never)
+import Effects as Fx exposing (Effects, Errorless)
 import Html exposing (..)
 import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)

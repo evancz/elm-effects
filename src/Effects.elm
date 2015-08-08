@@ -1,7 +1,7 @@
 module Effects
     ( Effects, none, task, tick, batch
     , map
-    , Never
+    , Errorless
     , toTask
     )
     where
@@ -31,17 +31,17 @@ import Task
 arbitrary effects and clock ticks for animations.
 -}
 type Effects msg
-    = Task (Task.Task Never msg)
+    = Task (Task.Task Errorless msg)
     | Tick (Float -> msg)
     | None
     | Batch (List (Effects msg))
 
 
-{-| A type that has no members. There are no values of type `Never`, so if
+{-| A type that has no members. There are no values of type `Errorless`, so if
 something has this type, it is a guarantee that it can never happen. It is
 useful for demanding that a `Task` can never fail.
 -}
-type Never = Never Never
+type Errorless = Errorless Errorless
 
 
 none : Effects msg
@@ -52,12 +52,12 @@ none =
 {-| Turn a `Task` into an `Effects` that results in a `msg`.
 
 Normally a `Task` has a error type and a success type. In this case the error
-type is `Never` meaning that you must provide a task that never fails. Lots of
+type is `Errorless` meaning that you must provide a task that never fails. Lots of
 tasks can fail (like HTTP requests), so you will want to use `Task.toMaybe`
 and `Task.toResult` to move potential errors into the success type so they can
 be handled explicitly.
 -}
-task : Task.Task Never msg -> Effects msg
+task : Task.Task Errorless msg -> Effects msg
 task =
     Task
 
@@ -114,7 +114,7 @@ function 0 times per project, and if you are doing very special things for
 expert reasons, you should probably have either 0 or 1 uses of this per
 project.
 -}
-toTask : Signal.Address msg -> Effects msg -> Task.Task Never ()
+toTask : Signal.Address msg -> Effects msg -> Task.Task Errorless ()
 toTask address effect =
     let
         (combinedTask, tickMessages) =
@@ -133,9 +133,9 @@ toTask address effect =
 
 toTaskHelp
     : Signal.Address msg
-    -> (Task.Task Never (), List (Float -> msg))
+    -> (Task.Task Errorless (), List (Float -> msg))
     -> Effects msg
-    -> (Task.Task Never (), List (Float -> msg))
+    -> (Task.Task Errorless (), List (Float -> msg))
 toTaskHelp address ((combinedTask, tickMessages) as intermediateResult) effect =
     case effect of
         Task task ->
@@ -165,7 +165,7 @@ toTaskHelp address ((combinedTask, tickMessages) as intermediateResult) effect =
                 )
 
 
-requestAnimationFrame : (Float -> Task.Task Never ()) -> Task.Task Never ()
+requestAnimationFrame : (Float -> Task.Task Errorless ()) -> Task.Task Errorless ()
 requestAnimationFrame =
     Native.Effects.requestAnimationFrame
 
