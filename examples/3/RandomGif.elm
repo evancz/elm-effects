@@ -36,12 +36,12 @@ update : Message -> Model -> (Model, Effects Message)
 update msg model =
   case msg of
     RequestMore ->
-      (model, getRandomImage model.topic)
+        model
+            => getRandomImage model.topic
 
     NewImage maybeUrl ->
-      ( Model model.topic (Maybe.withDefault model.image maybeUrl)
-      , Fx.none
-      )
+        Model model.topic (Maybe.withDefault model.image maybeUrl)
+            => Fx.none
 
 
 -- VIEW

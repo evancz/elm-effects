@@ -55,9 +55,8 @@ update : Message -> Model -> (Model, Effects Message)
 update message model =
     case message of
         Topic topic ->
-            ( { model | topic <- topic }
-            , Fx.none
-            )
+            { model | topic <- topic }
+                => Fx.none
 
         Create ->
             let
@@ -67,9 +66,8 @@ update message model =
                 newModel =
                     Model "" (model.gifList ++ [(model.uid, newRandomGif)]) (model.uid + 1)
             in
-                ( newModel
-                , map (SubMsg model.uid) fx
-                )
+                newModel
+                    => map (SubMsg model.uid) fx
 
         SubMsg msgId msg ->
             let
@@ -78,20 +76,19 @@ update message model =
                         let
                             (newRandomGif, fx) = Gif.update msg randomGif
                         in
-                            ( (id, newRandomGif)
-                            , map (SubMsg id) fx
-                            )
+                            (id, newRandomGif)
+                                => map (SubMsg id) fx
                     else
-                        (entry, Fx.none)
+                        entry
+                            => Fx.none
 
                 (newGifList, fxList) =
                     model.gifList
                         |> List.map subUpdate
                         |> List.unzip
             in
-                ( { model | gifList <- newGifList }
-                , batch fxList
-                )
+                { model | gifList <- newGifList }
+                    => batch fxList
 
 
 -- VIEW
