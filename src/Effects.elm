@@ -16,6 +16,25 @@ pattern that is crucial for any of these functions to make sense.
 # Combining Effects
 @docs map, batch
 
+# Helpers
+
+There are some common patterns that will show up in folks code a lot, so there
+are some helper functions you may want to define in your own code. For example,
+the `noFx` function makes it easier to return a model without any effects.
+
+    import Effects as Fx
+
+    noFx : model -> (model, Fx.Effects msg)
+    noFx model =
+        (model, Fx.none)
+
+This way you don't have to add the tuple in, just say something like
+`(noFx <| ...)` and get the same result.
+
+If folks find this helpful, we will add it to this library. Let us know in an
+issue.
+
+
 # Running Effects
 @docs toTask
 -}
