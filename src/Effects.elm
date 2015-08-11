@@ -63,6 +63,12 @@ useful for demanding that a `Task` can never fail.
 type Never = Never Never
 
 
+{-| The simplest effect of them all: don’t do anything! This is useful when
+some branches of your update function request effects and others do not.
+
+Example 5 in [elm-architecture-tutorial](https://github.com/evancz/elm-architecture-tutorial/)
+has a nice example of this with further explanation in the tutorial itself.
+-}
 none : Effects a
 none =
     None
