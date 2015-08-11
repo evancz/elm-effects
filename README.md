@@ -5,8 +5,6 @@ A package for working with effects like HTTP and animation within [The Elm Archi
 [arch]: https://github.com/evancz/elm-architecture-tutorial/
 
 
-<br>
-
 ## Examples
 
 These small examples are set up to clarify the key ideas by progressively introducing new stuff. Read [the Elm Architecture tutorial][arch] for a full walk through of these examples.
