@@ -56,7 +56,7 @@ type Effects a
     | Batch (List (Effects a))
 
 
-{-| A type that is “uninhabited”. There are no values of type `Never`, so if
+{-| A type that is "uninhabited". There are no values of type `Never`, so if
 something has this type, it is a guarantee that it can never happen. It is
 useful for demanding that a `Task` can never fail.
 -}
@@ -222,4 +222,3 @@ ignore task =
 sequence_ : List (Task.Task x a) -> Task.Task x ()
 sequence_ tasks =
   ignore (Task.sequence tasks)
-
