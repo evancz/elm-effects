@@ -2,6 +2,8 @@
 
 A package for working with effects like HTTP and animation within [The Elm Architecture][arch].
 
+[Package Documentation](http://package.elm-lang.org/packages/evancz/elm-effects/1.0.0/)
+
 [arch]: https://github.com/evancz/elm-architecture-tutorial/
 
 
