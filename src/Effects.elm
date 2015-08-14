@@ -42,7 +42,7 @@ experience in an issue.
 
 import Native.Effects
 import Task
-
+import Time exposing (Time)
 
 -- EFFECTS
 
@@ -51,7 +51,7 @@ arbitrary effects and clock ticks for animations.
 -}
 type Effects a
     = Task (Task.Task Never a)
-    | Tick (Float -> a)
+    | Tick (Time -> a)
     | None
     | Batch (List (Effects a))
 
@@ -96,7 +96,7 @@ the current time into an `a` value that can be handled by the relevant component
 Example 8 in [elm-architecture-tutorial](https://github.com/evancz/elm-architecture-tutorial/)
 has a nice example of this with further explanation in the tutorial itself.
 -}
-tick : (Float -> a) -> Effects a
+tick : (Time -> a) -> Effects a
 tick =
     Tick
 
@@ -177,9 +177,9 @@ toTask address effect =
 
 toTaskHelp
     : Signal.Address a
-    -> (Task.Task Never (), List (Float -> a))
+    -> (Task.Task Never (), List (Time -> a))
     -> Effects a
-    -> (Task.Task Never (), List (Float -> a))
+    -> (Task.Task Never (), List (Time -> a))
 toTaskHelp address ((combinedTask, tickMessages) as intermediateResult) effect =
     case effect of
         Task task ->
@@ -209,7 +209,7 @@ toTaskHelp address ((combinedTask, tickMessages) as intermediateResult) effect =
                 )
 
 
-requestAnimationFrame : (Float -> Task.Task Never ()) -> Task.Task Never ()
+requestAnimationFrame : (Time -> Task.Task Never ()) -> Task.Task Never ()
 requestAnimationFrame =
     Native.Effects.requestAnimationFrame
 
