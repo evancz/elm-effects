@@ -11,11 +11,16 @@ Elm.Native.Effects.make = function(localRuntime) {
 	var Task = Elm.Native.Task.make(localRuntime);
 	var Utils = Elm.Native.Utils.make(localRuntime);
 
+	var _requestAnimationFrame =
+		typeof requestAnimationFrame !== 'undefined'
+			? requestAnimationFrame
+			: function(cb) { setTimeout(cb, 1000 / 60); }
+			;
 
 	function raf(timeToTask)
 	{
 		return Task.asyncFunction(function(callback) {
-			requestAnimationFrame(function(time) {
+			_requestAnimationFrame(function(time) {
 				Task.perform(timeToTask(time));
 			});
 			callback(Task.succeed(Utils.Tuple0));
