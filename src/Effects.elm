@@ -216,7 +216,7 @@ requestAnimationFrame =
 
 ignore : Task.Task x a -> Task.Task x ()
 ignore task =
-  task `Task.andThen` always (Task.succeed ())
+  Task.map (always ()) task
 
 
 sequence_ : List (Task.Task x a) -> Task.Task x ()
