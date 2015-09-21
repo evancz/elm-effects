@@ -162,10 +162,11 @@ toTask : Signal.Address a -> Effects a -> Task.Task Never ()
 toTask address effect =
     let
         (combinedTask, tickMessages) =
-            toTaskHelp address (Task.succeed (), []) effect
+            toTaskHelp address effect (Task.succeed (), [])
 
         animationReport time =
             tickMessages
+                |> List.reverse
                 |> List.map (\f -> Signal.send address (f time))
                 |> sequence_
 
@@ -177,10 +178,10 @@ toTask address effect =
 
 toTaskHelp
     : Signal.Address a
-    -> (Task.Task Never (), List (Time -> a))
     -> Effects a
     -> (Task.Task Never (), List (Time -> a))
-toTaskHelp address ((combinedTask, tickMessages) as intermediateResult) effect =
+    -> (Task.Task Never (), List (Time -> a))
+toTaskHelp address effect ((combinedTask, tickMessages) as intermediateResult) =
     case effect of
         Task task ->
             let
@@ -200,13 +201,7 @@ toTaskHelp address ((combinedTask, tickMessages) as intermediateResult) effect =
             intermediateResult
 
         Batch effectList ->
-            let
-                (tasks, toMsgLists) =
-                    List.unzip <| List.map (toTaskHelp address intermediateResult) effectList
-            in
-                ( sequence_ tasks
-                , List.concat toMsgLists
-                )
+            List.foldl (toTaskHelp address) intermediateResult effectList
 
 
 requestAnimationFrame : (Time -> Task.Task Never ()) -> Task.Task Never ()
