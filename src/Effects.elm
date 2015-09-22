@@ -3,6 +3,7 @@ module Effects
     , map, batch
     , Never
     , toTask
+    , requestAnimationFrame
     )
     where
 {-| This module provides all the tools necessary to create modular components
@@ -37,6 +38,10 @@ experience in an issue.
 
 # Running Effects
 @docs toTask, Never
+
+
+# Low-level Functions
+@docs requestAnimationFrame
 -}
 
 
@@ -204,6 +209,15 @@ toTaskHelp address effect ((combinedTask, tickMessages) as intermediateResult) =
             List.foldl (toTaskHelp address) intermediateResult effectList
 
 
+{-| Returns a task which, when executed, will use the browser's native
+`requestAnimationFrame()` method to wait until an animation frame is needed.
+The function you provide will then be called, with the `Time` provided by
+`requestAnimationFrame()` as its parameter. The `Task` returned by your
+function will then be immediately executed.
+
+Note that this is a low-level function, intended as a building block for
+higher-level functions. You will typically not need to call this directly.
+-}
 requestAnimationFrame : (Time -> Task.Task Never ()) -> Task.Task Never ()
 requestAnimationFrame =
     Native.Effects.requestAnimationFrame
