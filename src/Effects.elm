@@ -7,8 +7,8 @@ module Effects
     where
 {-| This module provides all the tools necessary to create modular components
 that manage their own effects. **It is very important that you go through
-[this tutorial](https://github.com/evancz/elm-components).** It describes a
-pattern that is crucial for any of these functions to make sense.
+[this tutorial](https://github.com/evancz/elm-architecture-tutorial/).** It
+describes a pattern that is crucial for any of these functions to make sense.
 
 # Basic Effects
 @docs Effects, none, task, tick
