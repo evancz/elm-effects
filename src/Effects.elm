@@ -148,7 +148,8 @@ map func effect =
 
 
 {-| Convert an `Effects` into a task that cannot fail. When run, the resulting
-task will send a bunch of messages to the given `Address`.
+task will send a bunch of message lists to the given `Address`. As an invariant,
+no empty list will ever be sent.
 
 Generally speaking, you should not need this function, particularly if you are
 using [start-app](http://package.elm-lang.org/packages/evancz/start-app/latest).
@@ -173,7 +174,11 @@ toTask address effect =
         animationRequests =
             requestAnimationFrame animationReport
     in
-        combinedTask `Task.andThen` always animationRequests
+        if List.isEmpty tickMessages
+        then
+          combinedTask
+        else
+          combinedTask `Task.andThen` always animationRequests
 
 
 toTaskHelp
