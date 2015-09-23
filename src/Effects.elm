@@ -210,11 +210,8 @@ singleton a = [ a ]
 
 
 requestTickSending : Signal.Address (List a) -> List (Time -> a) -> Task.Task Never ()
-requestTickSending address tickMessages =
-    Native.Effects.requestAnimationFrame
-        (\time -> tickMessages
-                      |> List.map (\f -> f time)
-                      |> Signal.send address)
+requestTickSending =
+    Native.Effects.requestTickSending
 
 
 ignore : Task.Task x a -> Task.Task x ()
