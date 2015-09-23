@@ -165,14 +165,10 @@ toTask address effect =
         (combinedTask, tickMessages) =
             toTaskHelp address effect (Task.succeed (), [])
 
-        animationReport time =
+        animationRequests =
             tickMessages
                 |> List.reverse
-                |> List.map (\f -> f time)
-                |> Signal.send address
-
-        animationRequests =
-            requestAnimationFrame animationReport
+                |> requestTickSending address
     in
         if List.isEmpty tickMessages
         then
@@ -213,9 +209,12 @@ singleton : a -> List a
 singleton a = [ a ]
 
 
-requestAnimationFrame : (Time -> Task.Task Never ()) -> Task.Task Never ()
-requestAnimationFrame =
+requestTickSending : Signal.Address (List a) -> List (Time -> a) -> Task.Task Never ()
+requestTickSending address tickMessages =
     Native.Effects.requestAnimationFrame
+        (\time -> tickMessages
+                      |> List.map (\f -> f time)
+                      |> Signal.send address)
 
 
 ignore : Task.Task x a -> Task.Task x ()
