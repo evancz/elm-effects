@@ -158,7 +158,7 @@ function 0 times per project, and if you are doing very special things for
 expert reasons, you should probably have either 0 or 1 uses of this per
 project.
 -}
-toTask : Signal.Address a -> Effects a -> Task.Task Never ()
+toTask : Signal.Address (List a) -> Effects a -> Task.Task Never ()
 toTask address effect =
     let
         (combinedTask, tickMessages) =
@@ -167,8 +167,8 @@ toTask address effect =
         animationReport time =
             tickMessages
                 |> List.reverse
-                |> List.map (\f -> Signal.send address (f time))
-                |> sequence_
+                |> List.map (\f -> f time)
+                |> Signal.send address
 
         animationRequests =
             requestAnimationFrame animationReport
@@ -177,7 +177,7 @@ toTask address effect =
 
 
 toTaskHelp
-    : Signal.Address a
+    : Signal.Address (List a)
     -> Effects a
     -> (Task.Task Never (), List (Time -> a))
     -> (Task.Task Never (), List (Time -> a))
@@ -186,7 +186,7 @@ toTaskHelp address effect ((combinedTask, tickMessages) as intermediateResult) =
         Task task ->
             let
                 reporter =
-                    task `Task.andThen` Signal.send address
+                    task `Task.andThen` (singleton >> Signal.send address)
             in
                 ( combinedTask `Task.andThen` always (ignore (Task.spawn reporter))
                 , tickMessages
@@ -204,6 +204,10 @@ toTaskHelp address effect ((combinedTask, tickMessages) as intermediateResult) =
             List.foldl (toTaskHelp address) intermediateResult effectList
 
 
+singleton : a -> List a
+singleton a = [ a ]
+
+
 requestAnimationFrame : (Time -> Task.Task Never ()) -> Task.Task Never ()
 requestAnimationFrame =
     Native.Effects.requestAnimationFrame
@@ -212,8 +216,3 @@ requestAnimationFrame =
 ignore : Task.Task x a -> Task.Task x ()
 ignore task =
   Task.map (always ()) task
-
-
-sequence_ : List (Task.Task x a) -> Task.Task x ()
-sequence_ tasks =
-  ignore (Task.sequence tasks)
