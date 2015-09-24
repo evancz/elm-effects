@@ -14,8 +14,16 @@ Elm.Native.Effects.make = function(localRuntime) {
 	var List = Elm.Native.List.make(localRuntime);
 
 
+	// batchedSending and sendCallback implement a small state machine in order
+	// to schedule only one send(time) call per animation frame.
+	//
+	// Invariants:
+	// 1. In the NO_REQUEST state, there is never a scheduled sendCallback.
+	// 2. In the PENDING_REQUEST and EXTRA_REQUEST states, there is always exactly
+	//    one scheduled sendCallback.
 	var NO_REQUEST = 0;
 	var PENDING_REQUEST = 1;
+	var EXTRA_REQUEST = 2;
 	var state = NO_REQUEST;
 	var messageArray = [];
 
@@ -45,6 +53,9 @@ Elm.Native.Effects.make = function(localRuntime) {
 				return;
 			case PENDING_REQUEST:
 				state = PENDING_REQUEST;
+				return;
+			case EXTRA_REQUEST:
+				state = PENDING_REQUEST;
 		}
 	}
 
@@ -63,8 +74,22 @@ Elm.Native.Effects.make = function(localRuntime) {
 				);
 
 			case PENDING_REQUEST:
-				state = NO_REQUEST;
+				// At this point, we do not *know* that another frame is
+				// needed, but we make an extra request to rAF just in
+				// case. It's possible to drop a frame if rAF is called
+				// too late, so we just do it preemptively.
+				requestAnimationFrame(sendCallback);
+				state = EXTRA_REQUEST;
+
+				// There's also stuff we definitely need to send.
 				send(time);
+				return;
+
+			case EXTRA_REQUEST:
+				// Turns out the extra request was not needed, so we will
+				// stop calling rAF. No reason to call it all the time if
+				// no one needs it.
+				state = NO_REQUEST;
 		}
 	}
 
