@@ -35,7 +35,7 @@ Elm.Native.Effects.make = function(localRuntime) {
 		{
 			if (messageArray[i].address === address)
 			{
-				messageArray[i].tickMessages = messageArray[i].tickMessages.concat(List.toArray(tickMessages));
+				Array.prototype.push.apply(messageArray[i].tickMessages, List.toArray(tickMessages));
 				break;
 			}
 			i--;
