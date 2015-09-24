@@ -35,14 +35,14 @@ Elm.Native.Effects.make = function(localRuntime) {
 		{
 			if (messageArray[i].address === address)
 			{
-				Array.prototype.push.apply(messageArray[i].tickMessages, List.toArray(tickMessages));
+				messageArray[i].tickMessages = A3(List.foldl, List.cons, messageArray[i].tickMessages, tickMessages);
 				break;
 			}
 			i--;
 		}
 		if (i < 0)
 		{
-			messageArray.push({ address: address, tickMessages: List.toArray(tickMessages) });
+			messageArray.push({ address: address, tickMessages: A3(List.foldl, List.cons, List.Nil, tickMessages) });
 		}
 
 		switch (state)
@@ -98,12 +98,11 @@ Elm.Native.Effects.make = function(localRuntime) {
 	{
 		for (var i = messageArray.length; i--; )
 		{
-			var messages = messageArray[i].tickMessages;
-			for (var j = messages.length; j--; )
-			{
-				messages[j] = messages[j](time);
-			}
-			Task.perform( A2(Signal.send, messageArray[i].address, List.fromArray(messages)) );
+			var messages = A3(List.foldl, 
+						F2( function(f, list) { return List.Cons(f(time), list); } ),
+						List.Nil,
+						messageArray[i].tickMessages);
+			Task.perform( A2(Signal.send, messageArray[i].address, messages) );
 		}
 		messageArray = [];
 	}
