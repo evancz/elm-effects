@@ -42,7 +42,7 @@ Elm.Native.Effects.make = function(localRuntime) {
 		}
 		if (i < 0)
 		{
-			messageArray.push({ address: address, tickMessages: A3(List.foldl, List.cons, List.Nil, tickMessages) });
+			messageArray.push({ address: address, tickMessages: tickMessages });
 		}
 
 		switch (state)

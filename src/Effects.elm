@@ -167,7 +167,6 @@ toTask address effect =
 
         animationRequests =
             tickMessages
-                |> List.reverse
                 |> requestTickSending address
     in
         if List.isEmpty tickMessages
