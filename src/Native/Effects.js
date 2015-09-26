@@ -14,6 +14,14 @@ Elm.Native.Effects.make = function(localRuntime) {
 	var List = Elm.Native.List.make(localRuntime);
 
 
+	// polyfill so things will work even if rAF is not available for some reason
+	var _requestAnimationFrame =
+		typeof requestAnimationFrame !== 'undefined'
+			? requestAnimationFrame
+			: function(cb) { setTimeout(cb, 1000 / 60); }
+			;
+
+
 	// batchedSending and sendCallback implement a small state machine in order
 	// to schedule only one send(time) call per animation frame.
 	//
@@ -52,7 +60,7 @@ Elm.Native.Effects.make = function(localRuntime) {
 		switch (state)
 		{
 			case NO_REQUEST:
-				requestAnimationFrame(sendCallback);
+				_requestAnimationFrame(sendCallback);
 				state = PENDING_REQUEST;
 				break;
 			case PENDING_REQUEST:
@@ -83,7 +91,7 @@ Elm.Native.Effects.make = function(localRuntime) {
 				// needed, but we make an extra request to rAF just in
 				// case. It's possible to drop a frame if rAF is called
 				// too late, so we just do it preemptively.
-				requestAnimationFrame(sendCallback);
+				_requestAnimationFrame(sendCallback);
 				state = EXTRA_REQUEST;
 
 				// There's also stuff we definitely need to send.
