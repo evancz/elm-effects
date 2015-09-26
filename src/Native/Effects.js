@@ -30,32 +30,37 @@ Elm.Native.Effects.make = function(localRuntime) {
 
 	function batchedSending(address, tickMessages)
 	{
-		var i = messageArray.length - 1;
-		while (i >= 0)
+		// insert ticks into the messageArray
+		var foundAddress = false;
+
+		for (var i = messageArray.length; i--; )
 		{
 			if (messageArray[i].address === address)
 			{
+				foundAddress = true;
 				messageArray[i].tickMessages = A3(List.foldl, List.cons, messageArray[i].tickMessages, tickMessages);
 				break;
 			}
-			i--;
 		}
-		if (i < 0)
+
+		if (!foundAddress)
 		{
 			messageArray.push({ address: address, tickMessages: tickMessages });
 		}
 
+		// do the appropriate state transition
 		switch (state)
 		{
 			case NO_REQUEST:
 				requestAnimationFrame(sendCallback);
 				state = PENDING_REQUEST;
-				return;
+				break;
 			case PENDING_REQUEST:
 				state = PENDING_REQUEST;
-				return;
+				break;
 			case EXTRA_REQUEST:
 				state = PENDING_REQUEST;
+				break;
 		}
 	}
 
@@ -90,6 +95,7 @@ Elm.Native.Effects.make = function(localRuntime) {
 				// stop calling rAF. No reason to call it all the time if
 				// no one needs it.
 				state = NO_REQUEST;
+				return;
 		}
 	}
 
@@ -98,10 +104,12 @@ Elm.Native.Effects.make = function(localRuntime) {
 	{
 		for (var i = messageArray.length; i--; )
 		{
-			var messages = A3(List.foldl, 
-						F2( function(f, list) { return List.Cons(f(time), list); } ),
-						List.Nil,
-						messageArray[i].tickMessages);
+			var messages = A3(
+				List.foldl,
+				F2( function(toAction, list) { return List.Cons(toAction(time), list); } ),
+				List.Nil,
+				messageArray[i].tickMessages
+			);
 			Task.perform( A2(Signal.send, messageArray[i].address, messages) );
 		}
 		messageArray = [];

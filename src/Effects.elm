@@ -164,16 +164,12 @@ toTask address effect =
     let
         (combinedTask, tickMessages) =
             toTaskHelp address effect (Task.succeed (), [])
-
-        animationRequests =
-            tickMessages
-                |> requestTickSending address
     in
-        if List.isEmpty tickMessages
-        then
-          combinedTask
+        if List.isEmpty tickMessages then
+            combinedTask
+
         else
-          combinedTask `Task.andThen` always animationRequests
+            combinedTask `Task.andThen` always (requestTickSending address tickMessages)
 
 
 toTaskHelp
@@ -186,7 +182,7 @@ toTaskHelp address effect ((combinedTask, tickMessages) as intermediateResult) =
         Task task ->
             let
                 reporter =
-                    task `Task.andThen` (singleton >> Signal.send address)
+                    task `Task.andThen` (\answer -> Signal.send address [answer])
             in
                 ( combinedTask `Task.andThen` always (ignore (Task.spawn reporter))
                 , tickMessages
@@ -202,10 +198,6 @@ toTaskHelp address effect ((combinedTask, tickMessages) as intermediateResult) =
 
         Batch effectList ->
             List.foldl (toTaskHelp address) intermediateResult effectList
-
-
-singleton : a -> List a
-singleton a = [ a ]
 
 
 requestTickSending : Signal.Address (List a) -> List (Time -> a) -> Task.Task Never ()
