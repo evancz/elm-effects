@@ -148,7 +148,8 @@ map func effect =
 
 
 {-| Convert an `Effects` into a task that cannot fail. When run, the resulting
-task will send a bunch of messages to the given `Address`.
+task will send a bunch of message lists to the given `Address`. As an invariant,
+no empty list will ever be sent.
 
 Generally speaking, you should not need this function, particularly if you are
 using [start-app](http://package.elm-lang.org/packages/evancz/start-app/latest).
@@ -158,26 +159,21 @@ function 0 times per project, and if you are doing very special things for
 expert reasons, you should probably have either 0 or 1 uses of this per
 project.
 -}
-toTask : Signal.Address a -> Effects a -> Task.Task Never ()
+toTask : Signal.Address (List a) -> Effects a -> Task.Task Never ()
 toTask address effect =
     let
         (combinedTask, tickMessages) =
             toTaskHelp address effect (Task.succeed (), [])
-
-        animationReport time =
-            tickMessages
-                |> List.reverse
-                |> List.map (\f -> Signal.send address (f time))
-                |> sequence_
-
-        animationRequests =
-            requestAnimationFrame animationReport
     in
-        combinedTask `Task.andThen` always animationRequests
+        if List.isEmpty tickMessages then
+            combinedTask
+
+        else
+            combinedTask `Task.andThen` always (requestTickSending address tickMessages)
 
 
 toTaskHelp
-    : Signal.Address a
+    : Signal.Address (List a)
     -> Effects a
     -> (Task.Task Never (), List (Time -> a))
     -> (Task.Task Never (), List (Time -> a))
@@ -186,7 +182,7 @@ toTaskHelp address effect ((combinedTask, tickMessages) as intermediateResult) =
         Task task ->
             let
                 reporter =
-                    task `Task.andThen` Signal.send address
+                    task `Task.andThen` (\answer -> Signal.send address [answer])
             in
                 ( combinedTask `Task.andThen` always (ignore (Task.spawn reporter))
                 , tickMessages
@@ -204,16 +200,11 @@ toTaskHelp address effect ((combinedTask, tickMessages) as intermediateResult) =
             List.foldl (toTaskHelp address) intermediateResult effectList
 
 
-requestAnimationFrame : (Time -> Task.Task Never ()) -> Task.Task Never ()
-requestAnimationFrame =
-    Native.Effects.requestAnimationFrame
+requestTickSending : Signal.Address (List a) -> List (Time -> a) -> Task.Task Never ()
+requestTickSending =
+    Native.Effects.requestTickSending
 
 
 ignore : Task.Task x a -> Task.Task x ()
 ignore task =
   Task.map (always ()) task
-
-
-sequence_ : List (Task.Task x a) -> Task.Task x ()
-sequence_ tasks =
-  ignore (Task.sequence tasks)
