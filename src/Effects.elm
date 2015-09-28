@@ -149,7 +149,10 @@ map func effect =
 
 {-| Convert an `Effects` into a task that cannot fail. When run, the resulting
 task will send a bunch of message lists to the given `Address`. As an invariant,
-no empty list will ever be sent.
+no empty list will ever be sent. Non-singleton lists will only ever be sent for
+effects created with [`tick`](#tick). Those may be batched even over different
+calls to `toTask` with the same `Address`. In such lists, the order of elements
+is not significant.
 
 Generally speaking, you should not need this function, particularly if you are
 using [start-app](http://package.elm-lang.org/packages/evancz/start-app/latest).
