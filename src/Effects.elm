@@ -172,7 +172,7 @@ toTask address effect =
             combinedTask
 
         else
-            combinedTask `Task.andThen` always (requestTickSending address tickMessages)
+            requestTickSending address tickMessages `Task.andThen` always combinedTask
 
 
 toTaskHelp
@@ -187,7 +187,7 @@ toTaskHelp address effect ((combinedTask, tickMessages) as intermediateResult) =
                 reporter =
                     task `Task.andThen` (\answer -> Signal.send address [answer])
             in
-                ( combinedTask `Task.andThen` always (ignore (Task.spawn reporter))
+                ( ignore (Task.spawn reporter) `Task.andThen` always combinedTask
                 , tickMessages
                 )
 
