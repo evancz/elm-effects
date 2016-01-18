@@ -162,7 +162,7 @@ function 0 times per project, and if you are doing very special things for
 expert reasons, you should probably have either 0 or 1 uses of this per
 project.
 -}
-toTask : Signal.Address (List a) -> Effects a -> Task.Task Never ()
+toTask : Signal.Address (List a) -> Effects a -> Task.Task never ()
 toTask address effect =
     let
         (combinedTask, tickMessages) =
@@ -178,8 +178,8 @@ toTask address effect =
 toTaskHelp
     : Signal.Address (List a)
     -> Effects a
-    -> (Task.Task Never (), List (Time -> a))
-    -> (Task.Task Never (), List (Time -> a))
+    -> (Task.Task never (), List (Time -> a))
+    -> (Task.Task never (), List (Time -> a))
 toTaskHelp address effect ((combinedTask, tickMessages) as intermediateResult) =
     case effect of
         Task task ->
@@ -203,7 +203,7 @@ toTaskHelp address effect ((combinedTask, tickMessages) as intermediateResult) =
             List.foldl (toTaskHelp address) intermediateResult effectList
 
 
-requestTickSending : Signal.Address (List a) -> List (Time -> a) -> Task.Task Never ()
+requestTickSending : Signal.Address (List a) -> List (Time -> a) -> Task.Task never ()
 requestTickSending =
     Native.Effects.requestTickSending
 
