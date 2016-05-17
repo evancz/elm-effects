@@ -18,7 +18,7 @@ Elm.Native.Effects.make = function(localRuntime) {
 	var _requestAnimationFrame =
 		typeof requestAnimationFrame !== 'undefined'
 			? requestAnimationFrame
-			: function(cb) { setTimeout(cb, 1000 / 60); }
+			: function(cb) { setTimeout(function() {cb(localRuntime.timer.now())}, 1000 / 60); }
 			;
 
 
