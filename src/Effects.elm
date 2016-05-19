@@ -76,7 +76,7 @@ none =
 
 {-| Turn a `Task` into an `Effects` that results in an `a` value.
 
-Normally a `Task` has a error type and a success type. In this case the error
+Normally a `Task` has an error type and a success type. In this case the error
 type is `Never` meaning that you must provide a task that never fails. Lots of
 tasks can fail (like HTTP requests), so you will want to use `Task.toMaybe`
 and `Task.toResult` to move potential errors into the success type so they can
